@@ -86,10 +86,12 @@
 <meta property="og:site_name" content="llrrbaba">
 <meta property="og:description" content="RocketMQ可以说是站在巨人的肩膀上成长起来的，这里的巨人大概是RabbitMQ和Kafka，因为从RocketMQ身上能看见它继承了巨人的优点，好吧，看下我对RocketMQ的一些思考吧。">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2020/05/01/tGpDcb84B5Hz97f.png">
 <meta property="article:published_time" content="2020-05-01T04:20:24.000Z">
-<meta property="article:modified_time" content="2020-05-01T06:24:04.880Z">
+<meta property="article:modified_time" content="2020-05-01T06:45:07.986Z">
 <meta property="article:author" content="llrrbaba">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/05/01/tGpDcb84B5Hz97f.png">
 
 
 
@@ -381,11 +383,22 @@
 <p>缺点：消费方不知道什么时候能获取到最新的消息，会有消息延迟和忙等；相关API使用比较复杂。</p>
 <p>实现机制：</p>
 <p>DefaultMQConsumer</p>
-<h4 id="消息顺序写"><a href="#消息顺序写" class="headerlink" title="消息顺序写"></a>消息顺序写</h4><p>将消息有序地发到某一个的Topic的某一个MessageQueue中，而不是这个Topic下的多个MessageQueue中，然后消费者使用MessageListenerOrderly，这样，由于一个MessageQueue只能被一个消费者实例的一个线程消费，也就保证了消息的消费顺序和消息本身的顺序一致。</p>
+<h4 id="消息顺序写"><a href="#消息顺序写" class="headerlink" title="消息顺序写"></a>消息顺序写</h4><ul>
+<li>如何实现顺序写？</li>
+</ul>
+<p>将消息有序地发到某一个的Topic的某一个MessageQueue中，而不是这个Topic下的多个MessageQueue中，然后消费者使用MessageListenerOrderly，这样，由于一个MessageQueue只能被一个消费者实例的一个线程消费，也就保证了消息的消费顺序和消息本身的顺序一致。</p>
 <blockquote>
 <p>RocketMQ里如何实现将消息发到指定Topic的某一个MessageQueue里呢？</p>
+<p><img src="https://i.loli.net/2020/05/01/tGpDcb84B5Hz97f.png" alt="image.png"></p>
+<p><em>摘自：狸猫技术窝，从 0 开始带你成为消息中间件实战高手，80讲</em></p>
 </blockquote>
-<h4 id="集群架构"><a href="#集群架构" class="headerlink" title="集群架构"></a>集群架构</h4><h4 id="高性能"><a href="#高性能" class="headerlink" title="高性能"></a>高性能</h4>
+<ul>
+<li>顺序写会带来什么问题？<ul>
+<li>性能问题，毕竟要想保证顺序写，就得保证发消息和收消息两端都是单点对单点，单线程写，扔到一个MessageQueue(RocketMQ)或者Partition(Kafka)，单线程读。</li>
+</ul>
+</li>
+</ul>
+<h4 id="消息幂等性处理-避免重复消息"><a href="#消息幂等性处理-避免重复消息" class="headerlink" title="消息幂等性处理(避免重复消息)"></a>消息幂等性处理(避免重复消息)</h4><h4 id="集群架构"><a href="#集群架构" class="headerlink" title="集群架构"></a>集群架构</h4><h4 id="高性能"><a href="#高性能" class="headerlink" title="高性能"></a>高性能</h4>
       
     </div>
     
@@ -549,7 +562,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#组成模块"><span class="nav-number">1.</span> <span class="nav-text">组成模块</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Consumer"><span class="nav-number">1.1.</span> <span class="nav-text">Consumer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Producer"><span class="nav-number">1.2.</span> <span class="nav-text">Producer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NameServer"><span class="nav-number">1.3.</span> <span class="nav-text">NameServer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Broker"><span class="nav-number">1.4.</span> <span class="nav-text">Broker</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息的推-amp-拉"><span class="nav-number">2.</span> <span class="nav-text">消息的推&amp;拉</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息顺序写"><span class="nav-number">3.</span> <span class="nav-text">消息顺序写</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#集群架构"><span class="nav-number">4.</span> <span class="nav-text">集群架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#高性能"><span class="nav-number">5.</span> <span class="nav-text">高性能</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#组成模块"><span class="nav-number">1.</span> <span class="nav-text">组成模块</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Consumer"><span class="nav-number">1.1.</span> <span class="nav-text">Consumer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Producer"><span class="nav-number">1.2.</span> <span class="nav-text">Producer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NameServer"><span class="nav-number">1.3.</span> <span class="nav-text">NameServer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Broker"><span class="nav-number">1.4.</span> <span class="nav-text">Broker</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息的推-amp-拉"><span class="nav-number">2.</span> <span class="nav-text">消息的推&amp;拉</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息顺序写"><span class="nav-number">3.</span> <span class="nav-text">消息顺序写</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息幂等性处理-避免重复消息"><span class="nav-number">4.</span> <span class="nav-text">消息幂等性处理(避免重复消息)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#集群架构"><span class="nav-number">5.</span> <span class="nav-text">集群架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#高性能"><span class="nav-number">6.</span> <span class="nav-text">高性能</span></a></li></ol></div>
             
 
           </div>
