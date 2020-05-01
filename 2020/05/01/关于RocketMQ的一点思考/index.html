@@ -79,15 +79,15 @@
 
 
 
-<meta name="description" content="消息的推&amp;拉 推：  优点：消息消费更及时，延迟低，相关API使用方便。 缺点：受限于消费者的消费能力，可能造成消息的堆积，Broker会不断给消费者发送消费者来不及处理的消息。 实现机制： DefaultMQPushConsumer  拉：  优点：应用主动控制拉取时机，可以根据消费者的消费速度进行拉取；不会被推送过来的消息冲垮，相对来说也就更加可靠点。 缺点：消费方不知道什么时候能获取">
+<meta name="description" content="RocketMQ可以说是站在巨人的肩膀上成长起来的，这里的巨人大概是RabbitMQ和Kafka，因为从RocketMQ身上能看见它继承了巨人的优点，好吧，看下我对RocketMQ的一些思考吧。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="关于RocketMQ的一点思考">
 <meta property="og:url" content="http://yoursite.com/2020/05/01/%E5%85%B3%E4%BA%8ERocketMQ%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/index.html">
 <meta property="og:site_name" content="llrrbaba">
-<meta property="og:description" content="消息的推&amp;拉 推：  优点：消息消费更及时，延迟低，相关API使用方便。 缺点：受限于消费者的消费能力，可能造成消息的堆积，Broker会不断给消费者发送消费者来不及处理的消息。 实现机制： DefaultMQPushConsumer  拉：  优点：应用主动控制拉取时机，可以根据消费者的消费速度进行拉取；不会被推送过来的消息冲垮，相对来说也就更加可靠点。 缺点：消费方不知道什么时候能获取">
+<meta property="og:description" content="RocketMQ可以说是站在巨人的肩膀上成长起来的，这里的巨人大概是RabbitMQ和Kafka，因为从RocketMQ身上能看见它继承了巨人的优点，好吧，看下我对RocketMQ的一些思考吧。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-05-01T04:20:24.000Z">
-<meta property="article:modified_time" content="2020-05-01T04:33:24.821Z">
+<meta property="article:modified_time" content="2020-05-01T04:36:55.026Z">
 <meta property="article:author" content="llrrbaba">
 <meta name="twitter:card" content="summary">
 
@@ -351,7 +351,10 @@
       
 
       
-        <h4 id="消息的推-amp-拉"><a href="#消息的推-amp-拉" class="headerlink" title="消息的推&amp;拉"></a>消息的推&amp;拉</h4><ul>
+        <p>RocketMQ可以说是站在巨人的肩膀上成长起来的，这里的巨人大概是RabbitMQ和Kafka，因为从RocketMQ身上能看见它继承了巨人的优点，好吧，看下我对RocketMQ的一些思考吧。</p>
+<a id="more"></a>
+
+<h4 id="消息的推-amp-拉"><a href="#消息的推-amp-拉" class="headerlink" title="消息的推&amp;拉"></a>消息的推&amp;拉</h4><ul>
 <li>推：</li>
 </ul>
 <p>优点：消息消费更及时，延迟低，相关API使用方便。</p>
