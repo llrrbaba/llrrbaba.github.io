@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="LoadingCache接口简析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LoadingCache接口简析">
+<meta property="og:url" content="http://yoursite.com/2021/07/04/LoadingCache%E6%8E%A5%E5%8F%A3%E7%AE%80%E6%9E%90/index.html">
+<meta property="og:site_name" content="llrrbaba">
+<meta property="og:description" content="LoadingCache接口简析">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-07-04T13:54:35.238Z">
+<meta property="article:modified_time" content="2021-07-06T02:22:47.000Z">
+<meta property="article:author" content="llrrbaba">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/07/04/LoadingCache接口简析/"/>
+
+
+
+
+
+  <title>LoadingCache接口简析 | llrrbaba</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">llrrbaba</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-首页">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-关于">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-标签">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-分类">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-归档">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/04/LoadingCache%E6%8E%A5%E5%8F%A3%E7%AE%80%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="llrrbaba">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="llrrbaba">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">LoadingCache接口简析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-04T21:54:35+08:00">
+                2021-07-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>LoadingCache接口简析</p>
+<a id="more"></a>
+
+<p>build方法，一个有参，一个无参，我们重点关注下有参的builder方法。</p>
+<p>通过提供一个loader，可以实现如果我们从缓存中获取不到key对应的value时，自动通过loader来将数据从持久层获取到。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.Caffeine#build()</span></span><br><span class="line"><span class="keyword">public</span> &lt;K1 extends K, V1 extends V&gt; <span class="function">Cache&lt;K1, V1&gt; <span class="title">build</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  requireWeightWithWeigher();</span><br><span class="line">  requireNonLoadingCache();</span><br><span class="line"></span><br><span class="line">  <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">  Caffeine&lt;K1, V1&gt; self = (Caffeine&lt;K1, V1&gt;) <span class="keyword">this</span>;</span><br><span class="line">  <span class="keyword">return</span> isBounded()</span><br><span class="line">      ? <span class="keyword">new</span> BoundedLocalCache.BoundedLocalManualCache&lt;&gt;(self)</span><br><span class="line">      : <span class="keyword">new</span> UnboundedLocalCache.UnboundedLocalManualCache&lt;&gt;(self);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.Caffeine#build(com.github.benmanes.caffeine.cache.CacheLoader&lt;? super K1,V1&gt;)</span></span><br><span class="line"><span class="keyword">public</span> &lt;K1 extends K, V1 extends V&gt; <span class="function">LoadingCache&lt;K1, V1&gt; <span class="title">build</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      @NonNull CacheLoader&lt;? <span class="keyword">super</span> K1, V1&gt; loader)</span> </span>&#123;</span><br><span class="line">  requireWeightWithWeigher();</span><br><span class="line"></span><br><span class="line">  <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">  Caffeine&lt;K1, V1&gt; self = (Caffeine&lt;K1, V1&gt;) <span class="keyword">this</span>;</span><br><span class="line">  <span class="keyword">return</span> isBounded() || refreshAfterWrite()</span><br><span class="line">      ? <span class="keyword">new</span> BoundedLocalCache.BoundedLocalLoadingCache&lt;&gt;(self, loader)</span><br><span class="line">      : <span class="keyword">new</span> UnboundedLocalCache.UnboundedLocalLoadingCache&lt;&gt;(self, loader);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看到，loadingCache提供了无参的get()方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.Cache#get</span></span><br><span class="line"><span class="comment">// 可以看到，由于我们在Caffeine#build()方法没有传入loader，那么Cache接口，就没有无参的get方法了，</span></span><br><span class="line"><span class="comment">// 如果需要的话，需要在get方法传入load方法，完成数据从持久层的获取</span></span><br><span class="line"><span class="function">V <span class="title">get</span><span class="params">(@NonNull K key, @NonNull Function&lt;? <span class="keyword">super</span> K, ? extends V&gt; mappingFunction)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.LoadingCache#get</span></span><br><span class="line"><span class="comment">// 获取与传入的key关联的value，如果缓存里没有的话，就需要通过LoadingCache里的 cacheLoader来搂数据了；</span></span><br><span class="line"><span class="comment">// 如果某个线程正在通过cacheLoader搂指定key的数据的话，其他线程想要获取该key的value，就需要等待了，知道执行load的线程完事了；</span></span><br><span class="line"><span class="comment">// 多个线程可以并发的load不同的key，但是不能并发的load相同的key</span></span><br><span class="line"><span class="comment">// 如果指定的key没有关联的value，那么get方法会将load到的数据塞到缓存里(如果value就是 null的话，不往缓存里放)</span></span><br><span class="line"><span class="function">V <span class="title">get</span><span class="params">(@NonNull K key)</span></span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>接下来，就顺着loadingCache的get方法，往下追一追具体的实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.LocalLoadingCache#get</span></span><br><span class="line"><span class="comment">// 找到LocalLoadingCache的get实现</span></span><br><span class="line"><span class="keyword">default</span> <span class="meta">@Nullable</span> <span class="function">V <span class="title">get</span><span class="params">(K key)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> cache().computeIfAbsent(key, mappingFunction());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.LocalCache#computeIfAbsent(K, java.util.function.Function&lt;? super K,? extends V&gt;)</span></span><br><span class="line"><span class="keyword">default</span> <span class="meta">@Nullable</span> <span class="function">V <span class="title">computeIfAbsent</span><span class="params">(K key, Function&lt;? <span class="keyword">super</span> K, ? extends V&gt; mappingFunction)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> computeIfAbsent(key, mappingFunction, <span class="comment">/* recordStats */</span> <span class="keyword">true</span>, <span class="comment">/* recordLoad */</span> <span class="keyword">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.BoundedLocalCache#computeIfAbsent</span></span><br><span class="line"><span class="comment">// 终于，来到了BoundedLocalCache里</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@Nullable</span> <span class="function">V <span class="title">computeIfAbsent</span><span class="params">(K key, Function&lt;? <span class="keyword">super</span> K, ? extends V&gt; mappingFunction,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">boolean</span> recordStats, <span class="keyword">boolean</span> recordLoad)</span> </span>&#123;</span><br><span class="line">  requireNonNull(key);</span><br><span class="line">  requireNonNull(mappingFunction);</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 返回当前时间的纳秒值</span></span><br><span class="line">  <span class="keyword">long</span> now = expirationTicker().read();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// An optimistic fast path to avoid unnecessary locking</span></span><br><span class="line">  <span class="comment">// 首先从data里get下指定key对应的node</span></span><br><span class="line">  Node&lt;K, V&gt; node = data.get(nodeFactory.newLookupKey(key));</span><br><span class="line">  <span class="keyword">if</span> (node != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">// 如果node不为null，获取下value</span></span><br><span class="line">    V value = node.getValue();</span><br><span class="line">    <span class="keyword">if</span> ((value != <span class="keyword">null</span>) &amp;&amp; !hasExpired(node, now)) &#123;</span><br><span class="line">      <span class="comment">// 如果value不为null，并且node没有过期</span></span><br><span class="line">      <span class="keyword">if</span> (!isComputingAsync(node)) &#123;</span><br><span class="line">        <span class="comment">// 如果没有其他线程在修改当前node，尝试给当前 node做下过期操作</span></span><br><span class="line">        tryExpireAfterRead(node, key, value, expiry(), now);</span><br><span class="line">        <span class="comment">// 设置当前node的访问时间</span></span><br><span class="line">        setAccessTime(node, now);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      afterRead(node, now, <span class="comment">/* recordHit */</span> recordStats);</span><br><span class="line">      <span class="keyword">return</span> value;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (recordStats) &#123;</span><br><span class="line">    <span class="comment">// 如果需要记录指标的话，就去把loader包装下</span></span><br><span class="line">    mappingFunction = statsAware(mappingFunction, recordLoad);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 根据上一篇文章，我们拿到了一个具体实现为PSWMS的nodeFactory</span></span><br><span class="line">  <span class="comment">// 对于PSWMS来说，这里返回的keyRef就是我们传入的key本身，直接走的NodeFactory#newReferenceKey</span></span><br><span class="line">  Object keyRef = nodeFactory.newReferenceKey(key, keyReferenceQueue());</span><br><span class="line">  <span class="keyword">return</span> doComputeIfAbsent(key, keyRef, mappingFunction, <span class="keyword">new</span> <span class="keyword">long</span>[] &#123; now &#125;, recordStats);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.BoundedLocalCache#doComputeIfAbsent</span></span><br><span class="line"><span class="comment">// 终于来到了真正的获取指定key的value的方法了</span></span><br><span class="line"><span class="meta">@Nullable</span> <span class="function">V <span class="title">doComputeIfAbsent</span><span class="params">(K key, Object keyRef,</span></span></span><br><span class="line"><span class="function"><span class="params">      Function&lt;? <span class="keyword">super</span> K, ? extends V&gt; mappingFunction, <span class="keyword">long</span>[<span class="comment">/* 1 */</span>] now, <span class="keyword">boolean</span> recordStats)</span> </span>&#123;</span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    V[] oldValue = (V[]) <span class="keyword">new</span> Object[<span class="number">1</span>];</span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    V[] newValue = (V[]) <span class="keyword">new</span> Object[<span class="number">1</span>];</span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    K[] nodeKey = (K[]) <span class="keyword">new</span> Object[<span class="number">1</span>];</span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(&#123;<span class="string">"unchecked"</span>, <span class="string">"rawtypes"</span>&#125;)</span><br><span class="line">    Node&lt;K, V&gt;[] removed = <span class="keyword">new</span> Node[<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span>[] weight = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">2</span>]; <span class="comment">// old, new</span></span><br><span class="line">    RemovalCause[] cause = <span class="keyword">new</span> RemovalCause[<span class="number">1</span>];</span><br><span class="line">    Node&lt;K, V&gt; node = data.compute(keyRef, (k, n) -&gt; &#123;</span><br><span class="line">			<span class="comment">// 这里的data是concurrentHashMap，所以对其执行compute时，是线程安全的，</span></span><br><span class="line">      <span class="comment">// 如果是相同的key的话，后一个线程会等待前一个线程执行完，</span></span><br><span class="line">      <span class="comment">// 也就是说，只会有一个线程去真正执行load方法，去持久层搂取数据</span></span><br><span class="line">      </span><br><span class="line">      <span class="comment">// 走到这里的话，根据key可能是能找到value的，但是这个key对应的node已经过期了</span></span><br><span class="line">      <span class="comment">// 所以，n(也就是 node)有可能为null，也有可能不为null</span></span><br><span class="line">      <span class="keyword">if</span> (n == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果n为null，说明是第一次执行get方法</span></span><br><span class="line">        <span class="comment">// 调用传进来的function获取到key对应的value</span></span><br><span class="line">        newValue[<span class="number">0</span>] = mappingFunction.apply(key);</span><br><span class="line">        <span class="keyword">if</span> (newValue[<span class="number">0</span>] == <span class="keyword">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 如果value为 null，没得说了，说明持久层也没有这个key对应的 value，返回null完事了</span></span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 将当前时间赋给now数组的第一位元素</span></span><br><span class="line">        now[<span class="number">0</span>] = expirationTicker().read();</span><br><span class="line">        <span class="comment">// 计算新value的权重，赋给weight数组的第二位元素</span></span><br><span class="line">        weight[<span class="number">1</span>] = weigher.weigh(key, newValue[<span class="number">0</span>]);</span><br><span class="line">        <span class="comment">// 创建一个新的node，将key value维护进去</span></span><br><span class="line">        n = nodeFactory.newNode(key, keyReferenceQueue(),</span><br><span class="line">            newValue[<span class="number">0</span>], valueReferenceQueue(), weight[<span class="number">1</span>], now[<span class="number">0</span>]);</span><br><span class="line">        <span class="comment">// 如果执行过Caffeine#expireAfter方法的话，设置下VariableTime</span></span><br><span class="line">        setVariableTime(n, expireAfterCreate(key, newValue[<span class="number">0</span>], expiry(), now[<span class="number">0</span>]));</span><br><span class="line">        <span class="comment">// 将这个获取到的node返回</span></span><br><span class="line">        <span class="keyword">return</span> n;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 对这个node实例加锁</span></span><br><span class="line">      <span class="comment">// TODO，可能是其他线程会操作该node的状态，比如accessTime，writeTime之类的，这个有待验证</span></span><br><span class="line">      <span class="keyword">synchronized</span> (n) &#123;</span><br><span class="line">        nodeKey[<span class="number">0</span>] = n.getKey();</span><br><span class="line">        weight[<span class="number">0</span>] = n.getWeight();</span><br><span class="line">        oldValue[<span class="number">0</span>] = n.getValue();</span><br><span class="line">        <span class="keyword">if</span> ((nodeKey[<span class="number">0</span>] == <span class="keyword">null</span>) || (oldValue[<span class="number">0</span>] == <span class="keyword">null</span>)) &#123;</span><br><span class="line">          <span class="comment">// 走到这里，说明，key或者value是弱引用，被垃圾回收了</span></span><br><span class="line">          cause[<span class="number">0</span>] = RemovalCause.COLLECTED;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (hasExpired(n, now[<span class="number">0</span>])) &#123;</span><br><span class="line">          <span class="comment">// 走到这里，说明，node过期了</span></span><br><span class="line">          cause[<span class="number">0</span>] = RemovalCause.EXPIRED;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">// 如果key 或者 value没有被垃圾回收</span></span><br><span class="line">          <span class="comment">// node也没有过期，那么就返回该node</span></span><br><span class="line">          <span class="keyword">return</span> n;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 走到这里，说明node已经不可用了，通知下相关的监听者</span></span><br><span class="line">        writer.delete(nodeKey[<span class="number">0</span>], oldValue[<span class="number">0</span>], cause[<span class="number">0</span>]);</span><br><span class="line">        <span class="comment">// 通过 mappingFunction 重新计算下 key 对应的 value</span></span><br><span class="line">        newValue[<span class="number">0</span>] = mappingFunction.apply(key);</span><br><span class="line">        <span class="keyword">if</span> (newValue[<span class="number">0</span>] == <span class="keyword">null</span>) &#123;</span><br><span class="line">          <span class="comment">// 走到这里，说明这个key对应的value在持久层也不存在了</span></span><br><span class="line">          removed[<span class="number">0</span>] = n;</span><br><span class="line">          <span class="comment">// 这个 key 也就退休了</span></span><br><span class="line">          n.retire();</span><br><span class="line">          <span class="comment">// 返回null</span></span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        weight[<span class="number">1</span>] = weigher.weigh(key, newValue[<span class="number">0</span>]);</span><br><span class="line">        n.setValue(newValue[<span class="number">0</span>], valueReferenceQueue());</span><br><span class="line">        n.setWeight(weight[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">        now[<span class="number">0</span>] = expirationTicker().read();</span><br><span class="line">        <span class="comment">// 设置下VariableTime，对于SSMSW来说，这里expireAfterCreate(key, newValue[0], expiry(), now[0])返回0</span></span><br><span class="line">        setVariableTime(n, expireAfterCreate(key, newValue[<span class="number">0</span>], expiry(), now[<span class="number">0</span>]));</span><br><span class="line">        <span class="comment">// 设置下，访问时间和写入时间，走到这里的话，访问时间和写入时间是一样的</span></span><br><span class="line">        setAccessTime(n, now[<span class="number">0</span>]);</span><br><span class="line">        setWriteTime(n, now[<span class="number">0</span>]);</span><br><span class="line">        <span class="keyword">return</span> n;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (node == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (removed[<span class="number">0</span>] != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果 node == null ,但removed[0] != null，说明，这个node曾经被放到缓存data过，但是后来被移除了</span></span><br><span class="line">        <span class="comment">// TODO ，这块有待仔细看看，将这个node移除下</span></span><br><span class="line">        afterWrite(<span class="keyword">new</span> RemovalTask(removed[<span class="number">0</span>]));</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 节点都没了，只能返回个null了</span></span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (cause[<span class="number">0</span>] != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (hasRemovalListener()) &#123;</span><br><span class="line">        notifyRemoval(nodeKey[<span class="number">0</span>], oldValue[<span class="number">0</span>], cause[<span class="number">0</span>]);</span><br><span class="line">      &#125;</span><br><span class="line">      statsCounter().recordEviction(weight[<span class="number">0</span>], cause[<span class="number">0</span>]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (newValue[<span class="number">0</span>] == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 如果是强引用的话，newValue[0] == null的时候，node == null肯定也是true，在上面88行就返回了，</span></span><br><span class="line">      <span class="comment">// 走到这里，应该是弱引用，被垃圾回收了，这里先不看弱引用的实现</span></span><br><span class="line">      <span class="keyword">if</span> (!isComputingAsync(node)) &#123;</span><br><span class="line">        tryExpireAfterRead(node, key, oldValue[<span class="number">0</span>], expiry(), now[<span class="number">0</span>]);</span><br><span class="line">        setAccessTime(node, now[<span class="number">0</span>]);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      afterRead(node, now[<span class="number">0</span>], <span class="comment">/* recordHit */</span> recordStats);</span><br><span class="line">      <span class="keyword">return</span> oldValue[<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ((oldValue[<span class="number">0</span>] == <span class="keyword">null</span>) &amp;&amp; (cause[<span class="number">0</span>] == <span class="keyword">null</span>)) &#123;</span><br><span class="line">      afterWrite(<span class="keyword">new</span> AddTask(node, weight[<span class="number">1</span>]));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">int</span> weightedDifference = (weight[<span class="number">1</span>] - weight[<span class="number">0</span>]);</span><br><span class="line">      afterWrite(<span class="keyword">new</span> UpdateTask(node, weightedDifference));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> newValue[<span class="number">0</span>];</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.BoundedLocalCache#hasExpired</span></span><br><span class="line"><span class="comment">// 这是判断node是否过期的方法</span></span><br><span class="line"><span class="comment">// 需要注意下的是：</span></span><br><span class="line"><span class="comment">// expiresAfterAccess() expiresAfterWrite() expiresVariable() 这三个方法</span></span><br><span class="line"><span class="comment">// 如果具体的cache实现类有覆盖的话，肯定是取具体cache类里的实现</span></span><br><span class="line"><span class="comment">// 没有的话，这三个方法，默认都是返回false</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 举个例子，可以看到，在SSMSW这个实现类中，只是覆盖了expiresAfterWrite，返回true</span></span><br><span class="line"><span class="comment"> * protected final boolean expiresAfterWrite() &#123;</span></span><br><span class="line"><span class="comment"> * 	return true;</span></span><br><span class="line"><span class="comment"> * &#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">hasExpired</span><span class="params">(Node&lt;K, V&gt; node, <span class="keyword">long</span> now)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (expiresAfterAccess() &amp;&amp; (now - node.getAccessTime() &gt;= expiresAfterAccessNanos()))</span><br><span class="line">      | (expiresAfterWrite() &amp;&amp; (now - node.getWriteTime() &gt;= expiresAfterWriteNanos()))</span><br><span class="line">      | (expiresVariable() &amp;&amp; (now - node.getVariableTime() &gt;= <span class="number">0</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.BoundedLocalCache#isComputingAsync</span></span><br><span class="line"><span class="comment">// Returns if the node's value is currently being computed, asynchronously.</span></span><br><span class="line"><span class="comment">// 判断当前node是不是正在被异步地修改或者写入中</span></span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">isComputingAsync</span><span class="params">(Node&lt;?, ?&gt; node)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> isAsync &amp;&amp; !Async.isReady((CompletableFuture&lt;?&gt;) node.getValue());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.BoundedLocalCache#tryExpireAfterRead</span></span><br><span class="line"><span class="comment">// 在当前线程访问该node之后，尝试更新下该node的访问时间</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">tryExpireAfterRead</span><span class="params">(Node&lt;K, V&gt; node, @Nullable K key,</span></span></span><br><span class="line"><span class="function"><span class="params">      @Nullable V value, Expiry&lt;K, V&gt; expiry, <span class="keyword">long</span> now)</span> </span>&#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * if (builder.expiresAfterAccess() || builder.expiresVariable()) &#123;</span></span><br><span class="line"><span class="comment">   *   sb.append('A');</span></span><br><span class="line"><span class="comment">   * &#125;</span></span><br><span class="line"><span class="comment">   * 根据LocalCacheFactory#newBoundedLocalCache方法，</span></span><br><span class="line"><span class="comment">   * 可以看出来，只有对caffeine执行了expireAfter或者expireAfterAccess</span></span><br><span class="line"><span class="comment">   * 才有可能expiresVariable()返回true</span></span><br><span class="line"><span class="comment">   * 否则，直接return，不做过期处理</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">if</span> (!expiresVariable() || (key == <span class="keyword">null</span>) || (value == <span class="keyword">null</span>)) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">long</span> variableTime = node.getVariableTime();</span><br><span class="line">  <span class="keyword">long</span> currentDuration = Math.max(<span class="number">1</span>, variableTime - now);</span><br><span class="line">  <span class="keyword">if</span> (isAsync &amp;&amp; (currentDuration &gt; MAXIMUM_EXPIRY)) &#123;</span><br><span class="line">    <span class="comment">// expireAfterCreate has not yet set the duration after completion</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">long</span> duration = expiry.expireAfterRead(key, value, now, currentDuration);</span><br><span class="line">  <span class="keyword">if</span> (duration != currentDuration) &#123;</span><br><span class="line">    <span class="keyword">long</span> expirationTime = isAsync ? (now + duration) : (now + Math.min(duration, MAXIMUM_EXPIRY));</span><br><span class="line">    node.casVariableTime(variableTime, expirationTime);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.LocalCache#statsAware(java.util.function.Function&lt;? super T,? extends R&gt;, boolean)</span></span><br><span class="line"><span class="comment">// 走到这个方法，说明没有直接从缓存中拿到指定key对应的 value数据</span></span><br><span class="line"><span class="comment">// 那么可能就需要记录下从缓存后面获取(compute)数据过程中的一些指标数据</span></span><br><span class="line"><span class="comment">// 这个方法就是包装了下我们自定义的loader，加了些计数的功能</span></span><br><span class="line"><span class="keyword">default</span> &lt;T, R&gt; Function&lt;? <span class="keyword">super</span> T, ? extends R&gt; statsAware(</span><br><span class="line">      Function&lt;? <span class="keyword">super</span> T, ? extends R&gt; mappingFunction, <span class="keyword">boolean</span> recordLoad) &#123;</span><br><span class="line">  <span class="keyword">if</span> (!isRecordingStats()) &#123;</span><br><span class="line">    <span class="comment">// 如果具体的cache实现说不需要记录的话，直接返回</span></span><br><span class="line">    <span class="keyword">return</span> mappingFunction;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> key -&gt; &#123;</span><br><span class="line">    R value;</span><br><span class="line">    <span class="comment">// 记录下没有命中缓存的次数，+1</span></span><br><span class="line">    statsCounter().recordMisses(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">long</span> startTime = statsTicker().read();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      value = mappingFunction.apply(key);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RuntimeException | Error e) &#123;</span><br><span class="line">      statsCounter().recordLoadFailure(statsTicker().read() - startTime);</span><br><span class="line">      <span class="keyword">throw</span> e;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 记录下load数据的时间</span></span><br><span class="line">    <span class="keyword">long</span> loadTime = statsTicker().read() - startTime;</span><br><span class="line">    <span class="keyword">if</span> (recordLoad) &#123;</span><br><span class="line">      <span class="keyword">if</span> (value == <span class="keyword">null</span>) &#123;</span><br><span class="line">        statsCounter().recordLoadFailure(loadTime);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        statsCounter().recordLoadSuccess(loadTime);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 将load到的数据返回</span></span><br><span class="line">    <span class="keyword">return</span> value;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.BoundedLocalCache#afterRead</span></span><br><span class="line"><span class="comment">// 执行一些，读取到数据之后的后处理操作</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">afterRead</span><span class="params">(Node&lt;K, V&gt; node, <span class="keyword">long</span> now, <span class="keyword">boolean</span> recordHit)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (recordHit) &#123;</span><br><span class="line">      <span class="comment">// 如果需要记录的话，就维护下命中次数</span></span><br><span class="line">      statsCounter().recordHits(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">boolean</span> delayable = skipReadBuffer() || (readBuffer.offer(node) != Buffer.FULL);</span><br><span class="line">    <span class="keyword">if</span> (shouldDrainBuffers(delayable)) &#123;</span><br><span class="line">      scheduleDrainBuffers();</span><br><span class="line">    &#125;</span><br><span class="line">  	</span><br><span class="line">  	<span class="comment">// 这里可以看到，有可能会执行refresh(更新entry)操作</span></span><br><span class="line">    refreshIfNeeded(node, now);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.github.benmanes.caffeine.cache.BoundedLocalCache#refreshIfNeeded</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">refreshIfNeeded</span><span class="params">(Node&lt;K, V&gt; node, <span class="keyword">long</span> now)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!refreshAfterWrite()) &#123;</span><br><span class="line">    <span class="comment">// 如果在构造 Cache的时候，没有设置refreshAfterWrite的话，那么这里不更新</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  K key;</span><br><span class="line">  V oldValue;</span><br><span class="line">  <span class="keyword">long</span> oldWriteTime = node.getWriteTime();</span><br><span class="line">  <span class="keyword">long</span> refreshWriteTime = (now + ASYNC_EXPIRY);</span><br><span class="line">  <span class="comment">// ((now - oldWriteTime) &gt; refreshAfterWriteNanos()) 说明当前时间距离上次写入操作，没有超过若refresh的期限</span></span><br><span class="line">  <span class="comment">// node.casWriteTime(oldWriteTime, refreshWriteTime) 通过CAS的方式，保证只有一个线程能更新写入时间成功</span></span><br><span class="line">  <span class="keyword">if</span> (((now - oldWriteTime) &gt; refreshAfterWriteNanos())</span><br><span class="line">      &amp;&amp; ((key = node.getKey()) != <span class="keyword">null</span>) &amp;&amp; ((oldValue = node.getValue()) != <span class="keyword">null</span>)</span><br><span class="line">      &amp;&amp; node.casWriteTime(oldWriteTime, refreshWriteTime)) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      CompletableFuture&lt;V&gt; refreshFuture;</span><br><span class="line">      <span class="keyword">long</span> startTime = statsTicker().read();</span><br><span class="line">      <span class="keyword">if</span> (isAsync) &#123;</span><br><span class="line">        <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">        CompletableFuture&lt;V&gt; future = (CompletableFuture&lt;V&gt;) oldValue;</span><br><span class="line">        <span class="keyword">if</span> (Async.isReady(future)) &#123;</span><br><span class="line">          <span class="meta">@SuppressWarnings</span>(<span class="string">"NullAway"</span>)</span><br><span class="line">          CompletableFuture&lt;V&gt; refresh = future.thenCompose(value -&gt;</span><br><span class="line">            cacheLoader.asyncReload(key, value, executor));</span><br><span class="line">          refreshFuture = refresh;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">// no-op if load is pending</span></span><br><span class="line">          node.casWriteTime(refreshWriteTime, oldWriteTime);</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="meta">@SuppressWarnings</span>(<span class="string">"NullAway"</span>)</span><br><span class="line">        CompletableFuture&lt;V&gt; refresh = cacheLoader.asyncReload(key, oldValue, executor);</span><br><span class="line">        refreshFuture = refresh;</span><br><span class="line">      &#125;</span><br><span class="line">      refreshFuture.whenComplete((newValue, error) -&gt; &#123;</span><br><span class="line">        <span class="keyword">long</span> loadTime = statsTicker().read() - startTime;</span><br><span class="line">        <span class="keyword">if</span> (error != <span class="keyword">null</span>) &#123;</span><br><span class="line">          logger.log(Level.WARNING, <span class="string">"Exception thrown during refresh"</span>, error);</span><br><span class="line">          node.casWriteTime(refreshWriteTime, oldWriteTime);</span><br><span class="line">          statsCounter().recordLoadFailure(loadTime);</span><br><span class="line">          <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">        V value = (isAsync &amp;&amp; (newValue != <span class="keyword">null</span>)) ? (V) refreshFuture : newValue;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">boolean</span>[] discard = <span class="keyword">new</span> <span class="keyword">boolean</span>[<span class="number">1</span>];</span><br><span class="line">        compute(key, (k, currentValue) -&gt; &#123;</span><br><span class="line">          <span class="keyword">if</span> (currentValue == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 如果原来没有值，那么将新值set进去</span></span><br><span class="line">            <span class="keyword">return</span> value;</span><br><span class="line">          &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((currentValue == oldValue) &amp;&amp; (node.getWriteTime() == refreshWriteTime)) &#123;</span><br><span class="line">            <span class="comment">// 走到这里，如果别的线程已经更新完了，</span></span><br><span class="line">            <span class="comment">// 那么就会出现currentValue != oldValue或者node.getWriteTime() != refreshWriteTime的情况</span></span><br><span class="line">            <span class="comment">// 如果是那样的话， 这里不执行更新</span></span><br><span class="line">            <span class="keyword">return</span> value;</span><br><span class="line">          &#125;</span><br><span class="line">          discard[<span class="number">0</span>] = <span class="keyword">true</span>;</span><br><span class="line">          <span class="keyword">return</span> currentValue;</span><br><span class="line">        &#125;, <span class="comment">/* recordMiss */</span> <span class="keyword">false</span>, <span class="comment">/* recordLoad */</span> <span class="keyword">false</span>, <span class="comment">/* recordLoadFailure */</span> <span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (discard[<span class="number">0</span>] &amp;&amp; hasRemovalListener()) &#123;</span><br><span class="line">          notifyRemoval(key, value, RemovalCause.REPLACED);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (newValue == <span class="keyword">null</span>) &#123;</span><br><span class="line">          statsCounter().recordLoadFailure(loadTime);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          statsCounter().recordLoadSuccess(loadTime);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">      node.casWriteTime(refreshWriteTime, oldWriteTime);</span><br><span class="line">      logger.log(Level.SEVERE, <span class="string">"Exception thrown when submitting refresh task"</span>, t);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/07/04/LoadingCache%E7%9A%84%E6%9E%84%E5%BB%BA%E8%BF%87%E7%A8%8B/" rel="next" title="LoadingCache的构建过程">
+                <i class="fa fa-chevron-left"></i> LoadingCache的构建过程
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/07/06/ReentrantReadWriteLock-%E8%AF%BB%E9%94%81-%E9%87%8A%E6%94%BE%E9%94%81/" rel="prev" title="ReentrantReadWriteLock-读锁-释放锁">
+                ReentrantReadWriteLock-读锁-释放锁 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">llrrbaba</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">llrrbaba</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
