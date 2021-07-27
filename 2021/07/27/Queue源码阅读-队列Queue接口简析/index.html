@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Queue,源码," />
 
 
 
@@ -79,16 +79,18 @@
 
 
 
-<meta name="description" content="了解下KafkaProducer对于元数据的操作(初始化，周期性拉取，等)">
+<meta name="description" content="队列Queue接口简析">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Kafka源码阅读-KafkaProducer与元数据">
-<meta property="og:url" content="http://yoursite.com/2021/07/26/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-KafkaProducer%E4%B8%8E%E5%85%83%E6%95%B0%E6%8D%AE/index.html">
+<meta property="og:title" content="队列Queue接口简析">
+<meta property="og:url" content="http://yoursite.com/2021/07/27/Queue%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-%E9%98%9F%E5%88%97Queue%E6%8E%A5%E5%8F%A3%E7%AE%80%E6%9E%90/index.html">
 <meta property="og:site_name" content="llrrbaba">
-<meta property="og:description" content="了解下KafkaProducer对于元数据的操作(初始化，周期性拉取，等)">
+<meta property="og:description" content="队列Queue接口简析">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-07-26T05:18:08.107Z">
-<meta property="article:modified_time" content="2021-07-26T08:06:57.045Z">
+<meta property="article:published_time" content="2021-07-27T01:10:04.000Z">
+<meta property="article:modified_time" content="2021-07-27T02:10:33.387Z">
 <meta property="article:author" content="llrrbaba">
+<meta property="article:tag" content="Queue">
+<meta property="article:tag" content="源码">
 <meta name="twitter:card" content="summary">
 
 
@@ -119,13 +121,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2021/07/26/Kafka源码阅读-KafkaProducer与元数据/"/>
+  <link rel="canonical" href="http://yoursite.com/2021/07/27/Queue源码阅读-队列Queue接口简析/"/>
 
 
 
 
 
-  <title>Kafka源码阅读-KafkaProducer与元数据 | llrrbaba</title>
+  <title>队列Queue接口简析 | llrrbaba</title>
   
 
 
@@ -262,7 +264,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/26/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-KafkaProducer%E4%B8%8E%E5%85%83%E6%95%B0%E6%8D%AE/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/27/Queue%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-%E9%98%9F%E5%88%97Queue%E6%8E%A5%E5%8F%A3%E7%AE%80%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="llrrbaba">
@@ -279,7 +281,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Kafka源码阅读-KafkaProducer与元数据</h1>
+          <h1 class="post-title" itemprop="name headline">队列Queue接口简析</h1>
         
 
         <div class="post-meta">
@@ -291,8 +293,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-26T13:18:08+08:00">
-                2021-07-26
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-27T09:10:04+08:00">
+                2021-07-27
               </time>
             
 
@@ -301,6 +303,28 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Queue/" itemprop="url" rel="index">
+                    <span itemprop="name">Queue</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -329,15 +353,11 @@
       
 
       
-        <p>了解下KafkaProducer对于元数据的操作(初始化，周期性拉取，等)</p>
+        <p>队列Queue接口简析</p>
 <a id="more"></a>
 
-<h4 id="1-KafkaProducer初始化时，简单初始化Metadata"><a href="#1-KafkaProducer初始化时，简单初始化Metadata" class="headerlink" title="1.KafkaProducer初始化时，简单初始化Metadata"></a>1.KafkaProducer初始化时，简单初始化Metadata</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org.apache.kafka.clients.Metadata#update</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(Cluster cluster, <span class="keyword">long</span> now)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 设置为不需要更新</span></span><br><span class="line">    <span class="keyword">this</span>.needUpdate = <span class="keyword">false</span>;</span><br><span class="line">    <span class="comment">// 设置最后刷新时间为传入的当前时间</span></span><br><span class="line">    <span class="keyword">this</span>.lastRefreshMs = now;</span><br><span class="line">    <span class="comment">// 设置最后成功刷新时间为传入的当前时间</span></span><br><span class="line">    <span class="keyword">this</span>.lastSuccessfulRefreshMs = now;</span><br><span class="line">    <span class="comment">// 元数据的版本号自增一次</span></span><br><span class="line">    <span class="keyword">this</span>.version += <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 对于从KafkaProducer的构造函数过来的调用，这里的listeners是一个空集合，这里先忽略了</span></span><br><span class="line">    <span class="keyword">for</span> (Listener listener: listeners)</span><br><span class="line">        listener.onMetadataUpdate(cluster);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置下cluster信息</span></span><br><span class="line">    <span class="keyword">this</span>.cluster = <span class="keyword">this</span>.needMetadataForAllTopics ? getClusterForCurrentTopics(cluster) : cluster;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 可以看到Metadata里的大部分方法是同步的</span></span><br><span class="line">    <span class="comment">// 这里唤醒了下由于调用了Metadata的wait方法而进入阻塞状态的线程</span></span><br><span class="line">    <span class="comment">// TODO 还没找到哪里会调用Metadata的wait方法</span></span><br><span class="line">    notifyAll();</span><br><span class="line">    log.debug(<span class="string">"Updated cluster metadata version &#123;&#125; to &#123;&#125;"</span>, <span class="keyword">this</span>.version, <span class="keyword">this</span>.cluster);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> java.util;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 可以看到 Queue 继承了 Collection，所以Collection的接口，Queue的实现类也会去实现。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 另外可以看到，Queue提供的接口方法，都是成对出现的，</span></span><br><span class="line"><span class="comment">// 相同操作的方法，在操作失败的时候，一个抛出异常，一个返回特定的值(null或者false之类的)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Queue的实现类，通常是FIFO排序的，</span></span><br><span class="line"><span class="comment">// 但是也有例外</span></span><br><span class="line"><span class="comment">// 例外1，优先级队列，按照优先级排序</span></span><br><span class="line"><span class="comment">// 例外2，LIFO队列，后进先出排序</span></span><br><span class="line"><span class="comment">// 每个Queue的实现类，都必须指出其排序规则</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Queue</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">Collection</span>&lt;<span class="title">E</span>&gt; </span>&#123;</span><br><span class="line">   </span><br><span class="line">    <span class="comment">// 往队列里添加一个元素，</span></span><br><span class="line">    <span class="comment">// 添加成功，就返回true</span></span><br><span class="line">    <span class="comment">// 如果队列满了，就抛出一个 IllegalStateException</span></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">add</span><span class="params">(E e)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 往队列里添加一个元素</span></span><br><span class="line">    <span class="comment">// 添加成功，就返回true</span></span><br><span class="line">    <span class="comment">// 如果队列满了，不抛出异常，只是返回false</span></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">offer</span><span class="params">(E e)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 移除队列头部的元素，</span></span><br><span class="line">    <span class="comment">// 如果队列为空，抛出一个 NoSuchElementException</span></span><br><span class="line">    <span class="function">E <span class="title">remove</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 移除队列头部的元素，</span></span><br><span class="line">    <span class="comment">// 如果队列为空，返回 null</span></span><br><span class="line">    <span class="function">E <span class="title">poll</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 返回队列头部元素(不移除)</span></span><br><span class="line">    <span class="comment">// 如果队列为空，抛出一个 NoSuchElementException</span></span><br><span class="line">    <span class="function">E <span class="title">element</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 返回队列头部元素(不移除)</span></span><br><span class="line">    <span class="comment">// 如果队列为空，返回 null</span></span><br><span class="line">    <span class="function">E <span class="title">peek</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
-
-<p>可以看到，<code>Metadata</code>的<code>topics</code>属性并没有在上面的方法中设置，那么我们在发送消息的时候，应该是需更新下<code>Metadata</code>的<code>topics</code>属性的；</p>
-<p>上面的方法最主要的意义就是将<code>cluster</code>信息设置到<code>Metadata</code>里。</p>
 
       
     </div>
@@ -353,6 +373,14 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/Queue/" rel="tag"># Queue</a>
+          
+            <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          
+        </div>
+      
 
       
       
@@ -362,8 +390,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/07/26/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-KafkaProducer%E5%88%9D%E5%A7%8B%E5%8C%96%E8%BF%87%E7%A8%8B/" rel="next" title="Kafka源码阅读-KafkaProducer初始化过程">
-                <i class="fa fa-chevron-left"></i> Kafka源码阅读-KafkaProducer初始化过程
+              <a href="/2021/07/26/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-KafkaProducer%E4%B8%8E%E5%85%83%E6%95%B0%E6%8D%AE/" rel="next" title="Kafka源码阅读-KafkaProducer与元数据">
+                <i class="fa fa-chevron-left"></i> Kafka源码阅读-KafkaProducer与元数据
               </a>
             
           </div>
@@ -372,8 +400,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/07/27/Queue%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-%E9%98%9F%E5%88%97Queue%E6%8E%A5%E5%8F%A3%E7%AE%80%E6%9E%90/" rel="prev" title="队列Queue接口简析">
-                队列Queue接口简析 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/07/27/Queue%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-%E9%98%9F%E5%88%97Deque%E6%8E%A5%E5%8F%A3%E7%AE%80%E6%9E%90/" rel="prev" title="队列Deque接口简析">
+                队列Deque接口简析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -426,17 +454,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Table of Contents
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Overview
-          </li>
-        </ul>
-      
 
-      <section class="site-overview-wrap sidebar-panel">
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -496,22 +515,6 @@
         </div>
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-KafkaProducer初始化时，简单初始化Metadata"><span class="nav-number">1.</span> <span class="nav-text">1.KafkaProducer初始化时，简单初始化Metadata</span></a></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
