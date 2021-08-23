@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Kafka,源码," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="KafkaConsumer源码阅读">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka源码阅读-8-KafkaConsumer-poll源码阅读">
+<meta property="og:url" content="http://yoursite.com/2021/07/27/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-8-KafkaConsumer-poll%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/index.html">
+<meta property="og:site_name" content="llrrbaba">
+<meta property="og:description" content="KafkaConsumer源码阅读">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-07-27T13:15:04.000Z">
+<meta property="article:modified_time" content="2021-08-22T13:42:08.812Z">
+<meta property="article:author" content="llrrbaba">
+<meta property="article:tag" content="Kafka">
+<meta property="article:tag" content="源码">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/07/27/Kafka源码阅读-8-KafkaConsumer-poll源码阅读/"/>
+
+
+
+
+
+  <title>Kafka源码阅读-8-KafkaConsumer-poll源码阅读 | llrrbaba</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">llrrbaba</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-首页">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-关于">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-标签">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-分类">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-归档">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/27/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-8-KafkaConsumer-poll%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="llrrbaba">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="llrrbaba">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Kafka源码阅读-8-KafkaConsumer-poll源码阅读</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-27T21:15:04+08:00">
+                2021-07-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kafka/" itemprop="url" rel="index">
+                    <span itemprop="name">Kafka</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>KafkaConsumer源码阅读</p>
+<a id="more"></a>
+
+
+
+
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ConsumerRecords&lt;K, V&gt; <span class="title">poll</span><span class="params">(<span class="keyword">long</span> timeout)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 首先获取锁</span></span><br><span class="line">    acquire();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 如果拉取消息的等待时间为负数，直接抛出异常</span></span><br><span class="line">        <span class="keyword">if</span> (timeout &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Timeout must not be negative"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// poll for new data until the timeout expires</span></span><br><span class="line">        <span class="comment">// 获取当前时间</span></span><br><span class="line">        <span class="keyword">long</span> start = time.milliseconds();</span><br><span class="line">        <span class="comment">// 设置剩余等待时间，一开始等于传入的timeout时间</span></span><br><span class="line">        <span class="keyword">long</span> remaining = timeout;</span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            Map&lt;TopicPartition, List&lt;ConsumerRecord&lt;K, V&gt;&gt;&gt; records = pollOnce(remaining);</span><br><span class="line">            <span class="keyword">if</span> (!records.isEmpty()) &#123;</span><br><span class="line">                <span class="comment">// before returning the fetched records, we can send off the next round of fetches</span></span><br><span class="line">                <span class="comment">// and avoid block waiting for their responses to enable pipelining while the user</span></span><br><span class="line">                <span class="comment">// is handling the fetched records.</span></span><br><span class="line">                <span class="comment">//</span></span><br><span class="line">                <span class="comment">// <span class="doctag">NOTE:</span> since the consumed position has already been updated, we must not allow</span></span><br><span class="line">                <span class="comment">// wakeups or any other errors to be triggered prior to returning the fetched records.</span></span><br><span class="line">                <span class="comment">// Additionally, pollNoWakeup does not allow automatic commits to get triggered.</span></span><br><span class="line">                fetcher.sendFetches();</span><br><span class="line">                client.pollNoWakeup();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">this</span>.interceptors == <span class="keyword">null</span>)</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">new</span> ConsumerRecords&lt;&gt;(records);</span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">this</span>.interceptors.onConsume(<span class="keyword">new</span> ConsumerRecords&lt;&gt;(records));</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">long</span> elapsed = time.milliseconds() - start;</span><br><span class="line">            remaining = timeout - elapsed;</span><br><span class="line">        &#125; <span class="keyword">while</span> (remaining &gt; <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ConsumerRecords.empty();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        release();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 先拉取一轮消息看看</span></span><br><span class="line"><span class="keyword">private</span> Map&lt;TopicPartition, List&lt;ConsumerRecord&lt;K, V&gt;&gt;&gt; pollOnce(<span class="keyword">long</span> timeout) &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> Sub-requests should take into account the poll timeout (KAFKA-1894)</span></span><br><span class="line">    coordinator.ensureCoordinatorReady();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ensure we have partitions assigned if we expect to</span></span><br><span class="line">    <span class="comment">// 如果指定topics或者pattern的方式订阅消息的话，就返回true</span></span><br><span class="line">    <span class="keyword">if</span> (subscriptions.partitionsAutoAssigned())</span><br><span class="line">        coordinator.ensurePartitionAssignment();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// fetch positions if we have partitions we're subscribed to that we</span></span><br><span class="line">    <span class="comment">// don't know the offset for</span></span><br><span class="line">    <span class="keyword">if</span> (!subscriptions.hasAllFetchPositions())</span><br><span class="line">        updateFetchPositions(<span class="keyword">this</span>.subscriptions.missingFetchPositions());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">long</span> now = time.milliseconds();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// execute delayed tasks (e.g. autocommits and heartbeats) prior to fetching records</span></span><br><span class="line">    client.executeDelayedTasks(now);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// init any new fetches (won't resend pending fetches)</span></span><br><span class="line">    Map&lt;TopicPartition, List&lt;ConsumerRecord&lt;K, V&gt;&gt;&gt; records = fetcher.fetchedRecords();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// if data is available already, e.g. from a previous network client poll() call to commit,</span></span><br><span class="line">    <span class="comment">// then just return it immediately</span></span><br><span class="line">    <span class="keyword">if</span> (!records.isEmpty())</span><br><span class="line">        <span class="keyword">return</span> records;</span><br><span class="line"></span><br><span class="line">    fetcher.sendFetches();</span><br><span class="line">    client.poll(timeout, now);</span><br><span class="line">    <span class="keyword">return</span> fetcher.fetchedRecords();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="title">KafkaConsumer</span><span class="params">(ConsumerConfig config,</span></span></span><br><span class="line"><span class="function"><span class="params">                      Deserializer&lt;K&gt; keyDeserializer,</span></span></span><br><span class="line"><span class="function"><span class="params">                      Deserializer&lt;V&gt; valueDeserializer)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        </span><br><span class="line">        ...</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">this</span>.coordinator = <span class="keyword">new</span> ConsumerCoordinator(<span class="keyword">this</span>.client,</span><br><span class="line">                                                   config.getString(ConsumerConfig.GROUP_ID_CONFIG),</span><br><span class="line">                                                   config.getInt(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG),</span><br><span class="line">                                                   config.getInt(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG),</span><br><span class="line">                                                   assignors,</span><br><span class="line">                                                   <span class="keyword">this</span>.metadata,</span><br><span class="line">                                                   <span class="keyword">this</span>.subscriptions,</span><br><span class="line">                                                   metrics,</span><br><span class="line">                                                   metricGrpPrefix,</span><br><span class="line">                                                   <span class="keyword">this</span>.time,</span><br><span class="line">                                                   retryBackoffMs,</span><br><span class="line">                                                   <span class="keyword">new</span> ConsumerCoordinator.DefaultOffsetCommitCallback(),</span><br><span class="line">                                                   config.getBoolean(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG),</span><br><span class="line">                                                   config.getLong(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG),</span><br><span class="line">                                                   <span class="keyword">this</span>.interceptors,</span><br><span class="line">                                                   config.getBoolean(ConsumerConfig.EXCLUDE_INTERNAL_TOPICS_CONFIG));</span><br><span class="line">       </span><br><span class="line">        ...</span><br><span class="line">        </span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org.apache.kafka.clients.consumer.internals.SubscriptionState#partitionsAutoAssigned</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">partitionsAutoAssigned</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 如果指定topics或者pattern的方式订阅消息的话，就返回true</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.subscriptionType == SubscriptionType.AUTO_TOPICS || <span class="keyword">this</span>.subscriptionType == SubscriptionType.AUTO_PATTERN;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org.apache.kafka.clients.consumer.internals.AbstractCoordinator#ensureCoordinatorReady</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ensureCoordinatorReady</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 结合上面的 KafkaConsumer 的构造函数，我们可以得知，</span></span><br><span class="line">    <span class="comment">// 在 KafkaConsumer 中有一个 ConsumerCoordinator</span></span><br><span class="line">    <span class="comment">// 但是这个 ConsumerCoordinator 里的 coordinator 属性为null</span></span><br><span class="line">    <span class="keyword">while</span> (coordinatorUnknown()) &#123;</span><br><span class="line">        RequestFuture&lt;Void&gt; future = sendGroupCoordinatorRequest();</span><br><span class="line">        client.poll(future);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (future.failed()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (future.isRetriable())</span><br><span class="line">                <span class="comment">// 如果抛出的是一个可重试的异常，那就在这等着吧，等着元数据更新了，</span></span><br><span class="line">                <span class="comment">// 看看能不能找到一个 Coordinator</span></span><br><span class="line">                client.awaitMetadataUpdate();</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="comment">// 如果不是一个可重试的异常，那就原封不动把异常抛出去</span></span><br><span class="line">                <span class="keyword">throw</span> future.exception();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (coordinator != <span class="keyword">null</span> &amp;&amp; client.connectionFailed(coordinator)) &#123;</span><br><span class="line">            <span class="comment">// we found the coordinator, but the connection has failed, so mark</span></span><br><span class="line">            <span class="comment">// it dead and backoff before retrying discovery</span></span><br><span class="line">            <span class="comment">// 如果找到一个 coordinator，但是连接不上，那就把这个 coordinator 标记为 dead</span></span><br><span class="line">            coordinatorDead();</span><br><span class="line">            <span class="comment">// 并且歇一会，等下再来重新查看</span></span><br><span class="line">            time.sleep(retryBackoffMs);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// org.apache.kafka.clients.consumer.internals.AbstractCoordinator#coordinatorUnknown</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">coordinatorUnknown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (coordinator == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (client.connectionFailed(coordinator)) &#123;</span><br><span class="line">        coordinatorDead();</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// org.apache.kafka.clients.consumer.internals.AbstractCoordinator#sendGroupCoordinatorRequest</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> RequestFuture&lt;Void&gt; <span class="title">sendGroupCoordinatorRequest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// initiate the group metadata request</span></span><br><span class="line">    <span class="comment">// find a node to ask about the coordinator</span></span><br><span class="line">    <span class="comment">// 找一个负载压力最小的节点，这个node实际上就是broker节点</span></span><br><span class="line">    Node node = <span class="keyword">this</span>.client.leastLoadedNode();</span><br><span class="line">    <span class="keyword">if</span> (node == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// <span class="doctag">TODO:</span> If there are no brokers left, perhaps we should use the bootstrap set</span></span><br><span class="line">        <span class="comment">// from configuration?</span></span><br><span class="line">        <span class="comment">// 如果没有找到 broker 节点信息，返回一个包着异常的 future</span></span><br><span class="line">        <span class="keyword">return</span> RequestFuture.noBrokersAvailable();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// create a group  metadata request</span></span><br><span class="line">        log.debug(<span class="string">"Sending coordinator request for group &#123;&#125; to broker &#123;&#125;"</span>, groupId, node);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 封装一个 GroupCoordinatorRequest ，包着当前消费者实例对应的消费者组id</span></span><br><span class="line">        GroupCoordinatorRequest metadataRequest = <span class="keyword">new</span> GroupCoordinatorRequest(<span class="keyword">this</span>.groupId);</span><br><span class="line">        <span class="keyword">return</span> client.send(node, ApiKeys.GROUP_COORDINATOR, metadataRequest)</span><br><span class="line">            .compose(<span class="keyword">new</span> RequestFutureAdapter&lt;ClientResponse, Void&gt;() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSuccess</span><span class="params">(ClientResponse response, RequestFuture&lt;Void&gt; future)</span> </span>&#123;</span><br><span class="line">                    handleGroupMetadataResponse(response, future);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这个方法，对上面 send 方法的返回值做一个转换</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">handleGroupMetadataResponse</span><span class="params">(ClientResponse resp, RequestFuture&lt;Void&gt; future)</span> </span>&#123;</span><br><span class="line">    log.debug(<span class="string">"Received group coordinator response &#123;&#125;"</span>, resp);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!coordinatorUnknown()) &#123;</span><br><span class="line">        <span class="comment">// We already found the coordinator, so ignore the request</span></span><br><span class="line">        <span class="comment">// 如果已经找到 coordinator,直接返回成功就好</span></span><br><span class="line">        future.complete(<span class="keyword">null</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        GroupCoordinatorResponse groupCoordinatorResponse = <span class="keyword">new</span> GroupCoordinatorResponse(resp.responseBody());</span><br><span class="line">        <span class="comment">// use MAX_VALUE - node.id as the coordinator id to mimic separate connections</span></span><br><span class="line">        <span class="comment">// for the coordinator in the underlying network client layer</span></span><br><span class="line">        <span class="comment">// <span class="doctag">TODO:</span> this needs to be better handled in KAFKA-1935</span></span><br><span class="line">        Errors error = Errors.forCode(groupCoordinatorResponse.errorCode());</span><br><span class="line">        <span class="keyword">if</span> (error == Errors.NONE) &#123;</span><br><span class="line">            <span class="keyword">this</span>.coordinator = <span class="keyword">new</span> Node(Integer.MAX_VALUE - groupCoordinatorResponse.node().id(),</span><br><span class="line">                                        groupCoordinatorResponse.node().host(),</span><br><span class="line">                                        groupCoordinatorResponse.node().port());</span><br><span class="line"></span><br><span class="line">            log.info(<span class="string">"Discovered coordinator &#123;&#125; for group &#123;&#125;."</span>, coordinator, groupId);</span><br><span class="line"></span><br><span class="line">            client.tryConnect(coordinator);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// start sending heartbeats only if we have a valid generation</span></span><br><span class="line">            <span class="keyword">if</span> (generation &gt; <span class="number">0</span>)</span><br><span class="line">                heartbeatTask.reset();</span><br><span class="line">            future.complete(<span class="keyword">null</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (error == Errors.GROUP_AUTHORIZATION_FAILED) &#123;</span><br><span class="line">            future.raise(<span class="keyword">new</span> GroupAuthorizationException(groupId));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            future.raise(error);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ensureActiveGroup</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!needRejoin())</span><br><span class="line">        <span class="comment">// 如果不需要重新加入组内，直接return</span></span><br><span class="line">        <span class="comment">// </span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (needsJoinPrepare) &#123;</span><br><span class="line">        <span class="comment">// needsJoinPrepare 默认为true</span></span><br><span class="line">        <span class="comment">// 做一些加入消费者组之前的准备工作，比如提交自己和要加入的组的消费者的消费者位移</span></span><br><span class="line">        onJoinPrepare(generation, memberId);</span><br><span class="line">        needsJoinPrepare = <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (needRejoin()) &#123;</span><br><span class="line">        ensureCoordinatorReady();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// ensure that there are no pending requests to the coordinator. This is important</span></span><br><span class="line">        <span class="comment">// in particular to avoid resending a pending JoinGroup request.</span></span><br><span class="line">        <span class="keyword">if</span> (client.pendingRequestCount(<span class="keyword">this</span>.coordinator) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            client.awaitPendingRequests(<span class="keyword">this</span>.coordinator);</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 发送加入消费者组的请求</span></span><br><span class="line">        <span class="comment">// 其实，在这个 sendJoinGroupRequest 之后，的回调方法里会调用 assignor 进行分区的分配</span></span><br><span class="line">        RequestFuture&lt;ByteBuffer&gt; future = sendJoinGroupRequest();</span><br><span class="line">        future.addListener(<span class="keyword">new</span> RequestFutureListener&lt;ByteBuffer&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSuccess</span><span class="params">(ByteBuffer value)</span> </span>&#123;</span><br><span class="line">                <span class="comment">// handle join completion in the callback so that the callback will be invoked</span></span><br><span class="line">                <span class="comment">// even if the consumer is woken up before finishing the rebalance</span></span><br><span class="line">                onJoinComplete(generation, memberId, protocol, value);</span><br><span class="line">                needsJoinPrepare = <span class="keyword">true</span>;</span><br><span class="line">                heartbeatTask.reset();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(RuntimeException e)</span> </span>&#123;</span><br><span class="line">                <span class="comment">// we handle failures below after the request finishes. if the join completes</span></span><br><span class="line">                <span class="comment">// after having been woken up, the exception is ignored and we will rejoin</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        client.poll(future);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (future.failed()) &#123;</span><br><span class="line">            RuntimeException exception = future.exception();</span><br><span class="line">            <span class="keyword">if</span> (exception <span class="keyword">instanceof</span> UnknownMemberIdException ||</span><br><span class="line">                exception <span class="keyword">instanceof</span> RebalanceInProgressException ||</span><br><span class="line">                exception <span class="keyword">instanceof</span> IllegalGenerationException)</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (!future.isRetriable())</span><br><span class="line">                <span class="keyword">throw</span> exception;</span><br><span class="line">            time.sleep(retryBackoffMs);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ConsumerCoordinator</span> <span class="keyword">extends</span> <span class="title">AbstractCoordinator</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// org.apache.kafka.clients.consumer.internals.ConsumerCoordinator#ensurePartitionAssignment</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">ensurePartitionAssignment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (subscriptions.partitionsAutoAssigned()) &#123;</span><br><span class="line">            <span class="comment">// Due to a race condition between the initial metadata fetch and the initial rebalance, we need to ensure that</span></span><br><span class="line">            <span class="comment">// the metadata is fresh before joining initially, and then request the metadata update. If metadata update arrives</span></span><br><span class="line">            <span class="comment">// while the rebalance is still pending (for example, when the join group is still inflight), then we will lose</span></span><br><span class="line">            <span class="comment">// track of the fact that we need to rebalance again to reflect the change to the topic subscription. Without</span></span><br><span class="line">            <span class="comment">// ensuring that the metadata is fresh, any metadata update that changes the topic subscriptions and arrives with a</span></span><br><span class="line">            <span class="comment">// rebalance in progress will essentially be ignored. See KAFKA-3949 for the complete description of the problem.</span></span><br><span class="line">            <span class="keyword">if</span> (subscriptions.hasPatternSubscription())</span><br><span class="line">                client.ensureFreshMetadata();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// </span></span><br><span class="line">            ensureActiveGroup();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 加入消费者组之前的准备工作</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onJoinPrepare</span><span class="params">(<span class="keyword">int</span> generation, String memberId)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// commit offsets prior to rebalance if auto-commit enabled</span></span><br><span class="line">        <span class="comment">// 如果当前是自动提交消费位移的话，就先提交下当前消费者在各个tp上对应的消费位移</span></span><br><span class="line">        maybeAutoCommitOffsetsSync();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// execute the user's callback before rebalance</span></span><br><span class="line">        <span class="comment">// 在再均衡之前，调用下消费者监听器方法</span></span><br><span class="line">        ConsumerRebalanceListener listener = subscriptions.listener();</span><br><span class="line">        log.info(<span class="string">"Revoking previously assigned partitions &#123;&#125; for group &#123;&#125;"</span>, subscriptions.assignedPartitions(), groupId);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Set&lt;TopicPartition&gt; revoked = <span class="keyword">new</span> HashSet&lt;&gt;(subscriptions.assignedPartitions());</span><br><span class="line">            <span class="comment">// 调用监听器的onPartitionsRevoked方法，可以做一些事情，比如提交消费位移</span></span><br><span class="line">            listener.onPartitionsRevoked(revoked);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (WakeupException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> e;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">"User provided listener &#123;&#125; for group &#123;&#125; failed on partition revocation"</span>,</span><br><span class="line">                      listener.getClass().getName(), groupId, e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        assignmentSnapshot = <span class="keyword">null</span>;</span><br><span class="line">        <span class="comment">// 标记下订阅消息需要分配</span></span><br><span class="line">        subscriptions.needReassignment();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">maybeAutoCommitOffsetsSync</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (autoCommitEnabled) &#123;</span><br><span class="line">            <span class="comment">// 如果是自动提交消费位移的话，默认是true</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// 提交下消费位移</span></span><br><span class="line">                commitOffsetsSync(subscriptions.allConsumed());</span><br><span class="line">            &#125; <span class="keyword">catch</span> (WakeupException e) &#123;</span><br><span class="line">                <span class="comment">// rethrow wakeups since they are triggered by the user</span></span><br><span class="line">                <span class="keyword">throw</span> e;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                <span class="comment">// consistent with async auto-commit failures, we do not propagate the exception</span></span><br><span class="line">                log.warn(<span class="string">"Auto offset commit failed for group &#123;&#125;: &#123;&#125;"</span>, groupId, e.getMessage());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 消费者加入消费者组成功之后的回调</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onJoinComplete</span><span class="params">(<span class="keyword">int</span> generation,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String memberId,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  String assignmentStrategy,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  ByteBuffer assignmentBuffer)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// if we were the assignor, then we need to make sure that there have been no metadata updates</span></span><br><span class="line">        <span class="comment">// since the rebalance begin. Otherwise, we won't rebalance again until the next metadata change</span></span><br><span class="line">        <span class="comment">// 在 onJoinPrepare 里，我们最后把 assignmentSnapshot 设置为null</span></span><br><span class="line">        <span class="comment">// 然后在调用完 assignmentSnapshot 之后，又将 needsJoinPrepare 设置为 false，</span></span><br><span class="line">        <span class="comment">// 也就是说相同的消费者调用 poll 的时候不用再设置 assignmentSnapshot</span></span><br><span class="line">        <span class="keyword">if</span> (assignmentSnapshot != <span class="keyword">null</span> &amp;&amp; !assignmentSnapshot.equals(metadataSnapshot)) &#123;</span><br><span class="line">            <span class="comment">// 这个 needReassignment 是干啥的</span></span><br><span class="line">            subscriptions.needReassignment();</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        PartitionAssignor assignor = lookupAssignor(assignmentStrategy);</span><br><span class="line">        <span class="keyword">if</span> (assignor == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Coordinator selected invalid assignment protocol: "</span> + assignmentStrategy);</span><br><span class="line"></span><br><span class="line">        Assignment assignment = ConsumerProtocol.deserializeAssignment(assignmentBuffer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// set the flag to refresh last committed offsets</span></span><br><span class="line">        subscriptions.needRefreshCommits();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// update partition assignment</span></span><br><span class="line">        <span class="comment">// 更新 assignment</span></span><br><span class="line">        subscriptions.assignFromSubscribed(assignment.partitions());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// give the assignor a chance to update internal state based on the received assignment</span></span><br><span class="line">        assignor.onAssignment(assignment);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// reschedule the auto commit starting from now</span></span><br><span class="line">        <span class="keyword">if</span> (autoCommitEnabled)</span><br><span class="line">            <span class="comment">// 如果是允许自行提交 commit 的话，就让这个线程跑起来</span></span><br><span class="line">            autoCommitTask.reschedule();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// execute the user's callback after rebalance</span></span><br><span class="line">        ConsumerRebalanceListener listener = subscriptions.listener();</span><br><span class="line">        log.info(<span class="string">"Setting newly assigned partitions &#123;&#125; for group &#123;&#125;"</span>, subscriptions.assignedPartitions(), groupId);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Set&lt;TopicPartition&gt; assigned = <span class="keyword">new</span> HashSet&lt;&gt;(subscriptions.assignedPartitions());</span><br><span class="line">            <span class="comment">// 执行下监听器方法</span></span><br><span class="line">            listener.onPartitionsAssigned(assigned);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (WakeupException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> e;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">"User provided listener &#123;&#125; for group &#123;&#125; failed on partition assignment"</span>,</span><br><span class="line">                      listener.getClass().getName(), groupId, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 根据配置的名称找到匹配的分区分配策略</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> PartitionAssignor <span class="title">lookupAssignor</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (PartitionAssignor assignor : <span class="keyword">this</span>.assignors) &#123;</span><br><span class="line">            <span class="keyword">if</span> (assignor.name().equals(name))</span><br><span class="line">                <span class="keyword">return</span> assignor;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Kafka/" rel="tag"># Kafka</a>
+          
+            <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/07/27/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-3-KafkaProducer%E5%8F%91%E9%80%81%E6%B6%88%E6%81%AF/" rel="next" title="Kafka源码阅读-3-KafkaProducer发送消息">
+                <i class="fa fa-chevron-left"></i> Kafka源码阅读-3-KafkaProducer发送消息
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/07/27/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-7-KafkaConsumer%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="prev" title="Kafka源码阅读-7-KafkaConsumer-subscribe源码阅读">
+                Kafka源码阅读-7-KafkaConsumer-subscribe源码阅读 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">llrrbaba</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">32</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">llrrbaba</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

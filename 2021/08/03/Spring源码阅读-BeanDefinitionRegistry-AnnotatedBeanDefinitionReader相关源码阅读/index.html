@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="源码,Spring," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="BeanDefinitionRegistry 相关源码阅读(Spring版本：5.2.2.RELEASE)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring源码阅读-BeanDefinitionRegistry-DefaultListableBeanFactory相关源码阅读">
+<meta property="og:url" content="http://yoursite.com/2021/08/03/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-BeanDefinitionRegistry-AnnotatedBeanDefinitionReader%E7%9B%B8%E5%85%B3%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/index.html">
+<meta property="og:site_name" content="llrrbaba">
+<meta property="og:description" content="BeanDefinitionRegistry 相关源码阅读(Spring版本：5.2.2.RELEASE)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2021/08/03/GhXaIUA519ZpvRT.png">
+<meta property="article:published_time" content="2021-08-03T03:10:04.000Z">
+<meta property="article:modified_time" content="2021-08-03T10:28:47.681Z">
+<meta property="article:author" content="llrrbaba">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/08/03/GhXaIUA519ZpvRT.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/08/03/Spring源码阅读-BeanDefinitionRegistry-AnnotatedBeanDefinitionReader相关源码阅读/"/>
+
+
+
+
+
+  <title>Spring源码阅读-BeanDefinitionRegistry-DefaultListableBeanFactory相关源码阅读 | llrrbaba</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">llrrbaba</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-首页">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-关于">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-标签">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-分类">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-归档">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/08/03/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-BeanDefinitionRegistry-AnnotatedBeanDefinitionReader%E7%9B%B8%E5%85%B3%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="llrrbaba">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="llrrbaba">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Spring源码阅读-BeanDefinitionRegistry-DefaultListableBeanFactory相关源码阅读</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-08-03T11:10:04+08:00">
+                2021-08-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>BeanDefinitionRegistry 相关源码阅读(Spring版本：5.2.2.RELEASE)</p>
+<a id="more"></a>
+
+<p><img src="https://i.loli.net/2021/08/03/GhXaIUA519ZpvRT.png" alt="image.png"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Map of bean definition objects, keyed by bean name. */</span></span><br><span class="line"><span class="comment">// 这里面装了注册过的beanDefinition</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, BeanDefinition&gt; beanDefinitionMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;(<span class="number">256</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/** List of bean definition names, in registration order. */</span></span><br><span class="line"><span class="comment">// 这里面装了注册过的beanName，并且是有序的，按照注册顺序排序的</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">volatile</span> List&lt;String&gt; beanDefinitionNames = <span class="keyword">new</span> ArrayList&lt;&gt;(<span class="number">256</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// org.springframework.beans.factory.support.DefaultListableBeanFactory#registerBeanDefinition</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerBeanDefinition</span><span class="params">(String beanName, BeanDefinition beanDefinition)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> BeanDefinitionStoreException </span>&#123;</span><br><span class="line"></span><br><span class="line">    Assert.hasText(beanName, <span class="string">"Bean name must not be empty"</span>);</span><br><span class="line">    Assert.notNull(beanDefinition, <span class="string">"BeanDefinition must not be null"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 校验下</span></span><br><span class="line">    <span class="keyword">if</span> (beanDefinition <span class="keyword">instanceof</span> AbstractBeanDefinition) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ((AbstractBeanDefinition) beanDefinition).validate();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (BeanDefinitionValidationException ex) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> BeanDefinitionStoreException(beanDefinition.getResourceDescription(), beanName,</span><br><span class="line">                    <span class="string">"Validation of bean definition failed"</span>, ex);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// BeanName 和 BeanDefinition 的映射</span></span><br><span class="line">    <span class="comment">// 这里看下 该 beanName 对应的 beanDefinition 是不是已经注册过了</span></span><br><span class="line">    BeanDefinition existingDefinition = <span class="keyword">this</span>.beanDefinitionMap.get(beanName);</span><br><span class="line">    <span class="keyword">if</span> (existingDefinition != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 走到这里，说明已经注册过了</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 这里判断下，对于相同的 beanName，beanDefinition是否允许覆盖，</span></span><br><span class="line">        <span class="comment">// 如果不允许覆盖的话，这里会抛出 BeanDefinitionOverrideException，</span></span><br><span class="line">        <span class="comment">// 也就是 BeanDefinition覆盖异常</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 如果允许覆盖的话，</span></span><br><span class="line">        <span class="comment">// 有可能两个beanDefinition都不是同类型的，但是beanName相同，也会发生覆盖</span></span><br><span class="line">        <span class="keyword">if</span> (!isAllowBeanDefinitionOverriding()) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 一般情况下，是允许覆盖的，所以一般情况下会走到这里</span></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Object getBean(String name) throws BeansException;</span></span><br><span class="line"><span class="comment">	 * </span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@throws</span> NoSuchBeanDefinitionException if there is no bean with the specified name</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@throws</span> BeansException if the bean could not be obtained</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">        </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * &lt;T&gt; T getBean(Class&lt;T&gt; requiredType) throws BeansException;</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@throws</span> NoSuchBeanDefinitionException if no bean of the given type was found</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@throws</span> NoUniqueBeanDefinitionException if more than one bean of the given type was found</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@throws</span> BeansException if the bean could not be created</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">        <span class="comment">// 这里看下，BeanFactory的两个getBean方法，</span></span><br><span class="line">        <span class="comment">// 差别就在于通过name获取容器管理的bean的话，不会抛出NoUniqueBeanDefinitionException，</span></span><br><span class="line">        <span class="comment">// 为啥，因为在注册这里已经可以发现了，</span></span><br><span class="line">        <span class="comment">// 容器不允许注册两个相同beanName的beanDefinition，要不覆盖，要不抛出异常</span></span><br><span class="line">	</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (existingDefinition.getRole() &lt; beanDefinition.getRole()) &#123;</span><br><span class="line">            <span class="comment">// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE</span></span><br><span class="line">            <span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">                logger.info(<span class="string">"Overriding user-defined bean definition for bean '"</span> + beanName +</span><br><span class="line">                        <span class="string">"' with a framework-generated bean definition: replacing ["</span> +</span><br><span class="line">                        existingDefinition + <span class="string">"] with ["</span> + beanDefinition + <span class="string">"]"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (!beanDefinition.equals(existingDefinition)) &#123;</span><br><span class="line">            <span class="comment">// 可以看到，如果发生覆盖现象，</span></span><br><span class="line">            <span class="comment">// 并且两个相同beanName的beanDefinition不相等的话，</span></span><br><span class="line">            <span class="comment">// 这里会打日志，但是是debug级别的，线上环境一般不会捕捉这个级别的日志</span></span><br><span class="line">            <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line">                logger.debug(<span class="string">"Overriding bean definition for bean '"</span> + beanName +</span><br><span class="line">                        <span class="string">"' with a different definition: replacing ["</span> + existingDefinition +</span><br><span class="line">                        <span class="string">"] with ["</span> + beanDefinition + <span class="string">"]"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 可以看到，如果发生覆盖现象，</span></span><br><span class="line">            <span class="comment">// 并且两个相同beanName的beanDefinition相等的话，</span></span><br><span class="line">            <span class="comment">// 这里也会打日志，但是是trace级别的，线上环境一般不会捕捉这个级别的日志</span></span><br><span class="line">            <span class="keyword">if</span> (logger.isTraceEnabled()) &#123;</span><br><span class="line">                logger.trace(<span class="string">"Overriding bean definition for bean '"</span> + beanName +</span><br><span class="line">                        <span class="string">"' with an equivalent definition: replacing ["</span> + existingDefinition +</span><br><span class="line">                        <span class="string">"] with ["</span> + beanDefinition + <span class="string">"]"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 可以看到，</span></span><br><span class="line">        <span class="comment">// 这里只是把 baneName和BeanDefinition维护到beanDefinitionMap就完事了</span></span><br><span class="line">        <span class="keyword">this</span>.beanDefinitionMap.put(beanName, beanDefinition);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 走到这里，说明没有注册过</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (hasBeanCreationStarted()) &#123;</span><br><span class="line">            <span class="comment">// 如果有bean已经创建好了，说明最起码容器已经启动过了</span></span><br><span class="line">            <span class="comment">// Cannot modify startup-time collection elements anymore (for stable iteration)</span></span><br><span class="line">            <span class="keyword">synchronized</span> (<span class="keyword">this</span>.beanDefinitionMap) &#123;</span><br><span class="line">                <span class="comment">// 维护下 beanDefinitionMap beanDefinitionNames</span></span><br><span class="line">                <span class="keyword">this</span>.beanDefinitionMap.put(beanName, beanDefinition);</span><br><span class="line">                List&lt;String&gt; updatedDefinitions = <span class="keyword">new</span> ArrayList&lt;&gt;(<span class="keyword">this</span>.beanDefinitionNames.size() + <span class="number">1</span>);</span><br><span class="line">                updatedDefinitions.addAll(<span class="keyword">this</span>.beanDefinitionNames);</span><br><span class="line">                updatedDefinitions.add(beanName);</span><br><span class="line">                <span class="keyword">this</span>.beanDefinitionNames = updatedDefinitions;</span><br><span class="line">                removeManualSingletonName(beanName);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 维护下 beanDefinitionMap beanDefinitionNames</span></span><br><span class="line">            <span class="comment">// Still in startup registration phase</span></span><br><span class="line">            <span class="keyword">this</span>.beanDefinitionMap.put(beanName, beanDefinition);</span><br><span class="line">            <span class="keyword">this</span>.beanDefinitionNames.add(beanName);</span><br><span class="line">            removeManualSingletonName(beanName);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">this</span>.frozenBeanDefinitionNames = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (existingDefinition != <span class="keyword">null</span> || containsSingleton(beanName)) &#123;</span><br><span class="line">        resetBeanDefinition(beanName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Whether to allow re-registration of a different definition with the same name. */</span></span><br><span class="line"><span class="comment">// 相同 beanName 的时候，不同的 beanDefinition，是否允许覆盖，默认是允许覆盖的</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">boolean</span> allowBeanDefinitionOverriding = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// org.springframework.beans.factory.support.DefaultListableBeanFactory#isAllowBeanDefinitionOverriding</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAllowBeanDefinitionOverriding</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.allowBeanDefinitionOverriding;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org.springframework.beans.factory.support.AbstractBeanFactory#hasBeanCreationStarted</span></span><br><span class="line"><span class="comment">// 标明是不是已经有bean创建好了</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">hasBeanCreationStarted</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> !<span class="keyword">this</span>.alreadyCreated.isEmpty();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org.springframework.beans.factory.support.DefaultListableBeanFactory#resetBeanDefinition</span></span><br><span class="line"><span class="comment">// 重置指定bean的缓存，当一个beanDefinition被修改或者移除后</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">resetBeanDefinition</span><span class="params">(String beanName)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Remove the merged bean definition for the given bean, if already created.</span></span><br><span class="line">        clearMergedBeanDefinition(beanName);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Remove corresponding bean from singleton cache, if any. Shouldn't usually</span></span><br><span class="line">        <span class="comment">// be necessary, rather just meant for overriding a context's default beans</span></span><br><span class="line">        <span class="comment">// (e.g. the default StaticMessageSource in a StaticApplicationContext).</span></span><br><span class="line">        destroySingleton(beanName);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Notify all post-processors that the specified bean definition has been reset.</span></span><br><span class="line">        <span class="keyword">for</span> (BeanPostProcessor processor : getBeanPostProcessors()) &#123;</span><br><span class="line">                <span class="keyword">if</span> (processor <span class="keyword">instanceof</span> MergedBeanDefinitionPostProcessor) &#123;</span><br><span class="line">                        ((MergedBeanDefinitionPostProcessor) processor).resetBeanDefinition(beanName);</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Reset all bean definitions that have the given bean as parent (recursively).</span></span><br><span class="line">    	<span class="comment">// 这里递归处理了下所有以当前beanName作为parent的bean的缓存信息</span></span><br><span class="line">        <span class="keyword">for</span> (String bdName : <span class="keyword">this</span>.beanDefinitionNames) &#123;</span><br><span class="line">                <span class="keyword">if</span> (!beanName.equals(bdName)) &#123;</span><br><span class="line">                        BeanDefinition bd = <span class="keyword">this</span>.beanDefinitionMap.get(bdName);</span><br><span class="line">                        <span class="comment">// Ensure bd is non-null due to potential concurrent modification</span></span><br><span class="line">                        <span class="comment">// of the beanDefinitionMap.</span></span><br><span class="line">                        <span class="keyword">if</span> (bd != <span class="keyword">null</span> &amp;&amp; beanName.equals(bd.getParentName())) &#123;</span><br><span class="line">                                resetBeanDefinition(bdName);</span><br><span class="line">                        &#125;</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// org.springframework.beans.factory.support.DefaultListableBeanFactory#destroySingleton</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destroySingleton</span><span class="params">(String beanName)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.destroySingleton(beanName);</span><br><span class="line">        removeManualSingletonName(beanName);</span><br><span class="line">        clearByTypeCache();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** Map from bean name to merged RootBeanDefinition. */</span></span><br><span class="line"><span class="comment">// beanName到RootBeanDefinition的映射</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, RootBeanDefinition&gt; mergedBeanDefinitions = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;(<span class="number">256</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// org.springframework.beans.factory.support.AbstractBeanFactory#clearMergedBeanDefinition</span></span><br><span class="line"><span class="comment">// </span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">clearMergedBeanDefinition</span><span class="params">(String beanName)</span> </span>&#123;</span><br><span class="line">        RootBeanDefinition bd = <span class="keyword">this</span>.mergedBeanDefinitions.get(beanName);</span><br><span class="line">        <span class="keyword">if</span> (bd != <span class="keyword">null</span>) &#123;</span><br><span class="line">            	<span class="comment">// 如果根据 beanName 获取到了 RootBeanDefinition，就将其设置为stale，陈旧的</span></span><br><span class="line">                bd.stale = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          
+            <a href="/tags/Spring/" rel="tag"># Spring</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/08/03/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-BeanDefinition%E7%9B%B8%E5%85%B3%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="next" title="Spring源码阅读-BeanDefinition相关源码阅读">
+                <i class="fa fa-chevron-left"></i> Spring源码阅读-BeanDefinition相关源码阅读
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/08/03/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-BeanDefinitionReader-DefaultListableBeanFactory%E7%9B%B8%E5%85%B3%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="prev" title="Spring源码阅读-BeanDefinitionReader-AnnotatedBeanDefinitionReader相关源码阅读">
+                Spring源码阅读-BeanDefinitionReader-AnnotatedBeanDefinitionReader相关源码阅读 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">llrrbaba</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">32</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">llrrbaba</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

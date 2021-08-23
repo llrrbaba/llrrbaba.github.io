@@ -79,15 +79,15 @@
 
 
 
-<meta name="description" content="了解下KafkaProducer对于元数据的操作(初始化，周期性拉取，等)">
+<meta name="description" content="Java 1.8.0_291 好吧，这么久以后，终于耐下心来好好看看这个源码">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Kafka源码阅读-KafkaProducer与元数据">
-<meta property="og:url" content="http://yoursite.com/2021/07/26/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-KafkaProducer%E4%B8%8E%E5%85%83%E6%95%B0%E6%8D%AE/index.html">
+<meta property="og:title" content="ConcurrenrHashMap-扩容相关">
+<meta property="og:url" content="http://yoursite.com/2021/08/20/ConcurrenrHashMap-%E6%89%A9%E5%AE%B9%E7%9B%B8%E5%85%B3/index.html">
 <meta property="og:site_name" content="llrrbaba">
-<meta property="og:description" content="了解下KafkaProducer对于元数据的操作(初始化，周期性拉取，等)">
+<meta property="og:description" content="Java 1.8.0_291 好吧，这么久以后，终于耐下心来好好看看这个源码">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-07-26T05:18:08.107Z">
-<meta property="article:modified_time" content="2021-07-26T08:06:57.045Z">
+<meta property="article:published_time" content="2021-08-20T07:26:27.168Z">
+<meta property="article:modified_time" content="2021-08-20T07:26:27.291Z">
 <meta property="article:author" content="llrrbaba">
 <meta name="twitter:card" content="summary">
 
@@ -119,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2021/07/26/Kafka源码阅读-KafkaProducer与元数据/"/>
+  <link rel="canonical" href="http://yoursite.com/2021/08/20/ConcurrenrHashMap-扩容相关/"/>
 
 
 
 
 
-  <title>Kafka源码阅读-KafkaProducer与元数据 | llrrbaba</title>
+  <title>ConcurrenrHashMap-扩容相关 | llrrbaba</title>
   
 
 
@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/26/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-KafkaProducer%E4%B8%8E%E5%85%83%E6%95%B0%E6%8D%AE/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/08/20/ConcurrenrHashMap-%E6%89%A9%E5%AE%B9%E7%9B%B8%E5%85%B3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="llrrbaba">
@@ -279,7 +279,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Kafka源码阅读-KafkaProducer与元数据</h1>
+          <h1 class="post-title" itemprop="name headline">ConcurrenrHashMap-扩容相关</h1>
         
 
         <div class="post-meta">
@@ -291,8 +291,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-26T13:18:08+08:00">
-                2021-07-26
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-08-20T15:26:27+08:00">
+                2021-08-20
               </time>
             
 
@@ -329,15 +329,8 @@
       
 
       
-        <p>了解下KafkaProducer对于元数据的操作(初始化，周期性拉取，等)</p>
-<a id="more"></a>
-
-<h4 id="1-KafkaProducer初始化时，简单初始化Metadata"><a href="#1-KafkaProducer初始化时，简单初始化Metadata" class="headerlink" title="1.KafkaProducer初始化时，简单初始化Metadata"></a>1.KafkaProducer初始化时，简单初始化Metadata</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org.apache.kafka.clients.Metadata#update</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(Cluster cluster, <span class="keyword">long</span> now)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 设置为不需要更新</span></span><br><span class="line">    <span class="keyword">this</span>.needUpdate = <span class="keyword">false</span>;</span><br><span class="line">    <span class="comment">// 设置最后刷新时间为传入的当前时间</span></span><br><span class="line">    <span class="keyword">this</span>.lastRefreshMs = now;</span><br><span class="line">    <span class="comment">// 设置最后成功刷新时间为传入的当前时间</span></span><br><span class="line">    <span class="keyword">this</span>.lastSuccessfulRefreshMs = now;</span><br><span class="line">    <span class="comment">// 元数据的版本号自增一次</span></span><br><span class="line">    <span class="keyword">this</span>.version += <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 对于从KafkaProducer的构造函数过来的调用，这里的listeners是一个空集合，这里先忽略了</span></span><br><span class="line">    <span class="keyword">for</span> (Listener listener: listeners)</span><br><span class="line">        listener.onMetadataUpdate(cluster);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置下cluster信息</span></span><br><span class="line">    <span class="keyword">this</span>.cluster = <span class="keyword">this</span>.needMetadataForAllTopics ? getClusterForCurrentTopics(cluster) : cluster;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 可以看到Metadata里的大部分方法是同步的</span></span><br><span class="line">    <span class="comment">// 这里唤醒了下由于调用了Metadata的wait方法而进入阻塞状态的线程</span></span><br><span class="line">    <span class="comment">// TODO 还没找到哪里会调用Metadata的wait方法</span></span><br><span class="line">    notifyAll();</span><br><span class="line">    log.debug(<span class="string">"Updated cluster metadata version &#123;&#125; to &#123;&#125;"</span>, <span class="keyword">this</span>.version, <span class="keyword">this</span>.cluster);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>可以看到，<code>Metadata</code>的<code>topics</code>属性并没有在上面的方法中设置，那么我们在发送消息的时候，应该是需更新下<code>Metadata</code>的<code>topics</code>属性的；</p>
-<p>上面的方法最主要的意义就是将<code>cluster</code>信息设置到<code>Metadata</code>里。</p>
+        <p>Java 1.8.0_291</p>
+<p>好吧，这么久以后，终于耐下心来好好看看这个源码</p>
 
       
     </div>
@@ -362,8 +355,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/07/26/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-KafkaProducer%E5%88%9D%E5%A7%8B%E5%8C%96%E8%BF%87%E7%A8%8B/" rel="next" title="Kafka源码阅读-KafkaProducer初始化过程">
-                <i class="fa fa-chevron-left"></i> Kafka源码阅读-KafkaProducer初始化过程
+              <a href="/2021/08/19/ConcurrenrHashMap/" rel="next" title="ConcurrenrHashMap">
+                <i class="fa fa-chevron-left"></i> ConcurrenrHashMap
               </a>
             
           </div>
@@ -371,10 +364,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2021/07/27/Queue%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-%E9%98%9F%E5%88%97Queue%E6%8E%A5%E5%8F%A3%E7%AE%80%E6%9E%90/" rel="prev" title="队列Queue接口简析">
-                队列Queue接口简析 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -426,17 +415,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Table of Contents
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Overview
-          </li>
-        </ul>
-      
 
-      <section class="site-overview-wrap sidebar-panel">
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -451,7 +431,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">32</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -462,7 +442,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">5</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>
@@ -473,7 +453,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -496,22 +476,6 @@
         </div>
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-KafkaProducer初始化时，简单初始化Metadata"><span class="nav-number">1.</span> <span class="nav-text">1.KafkaProducer初始化时，简单初始化Metadata</span></a></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
