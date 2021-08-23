@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="源码,dubbo," />
 
 
 
@@ -79,16 +79,18 @@
 
 
 
-<meta name="description" content="12345678910111213141516171819202122232425262728293031323334353637&#x2F;&#x2F; com.alibaba.dubbo.common.extension.ExtensionLoader#getExtension&#x2F;&#x2F; 加载扩展点public T getExtension(String name) &amp;#123;    &#x2F;&#x2F; 如果名称不合法的话，抛出异">
+<meta name="description" content="spi">
 <meta property="og:type" content="article">
-<meta property="og:title" content="dubbo-spi">
-<meta property="og:url" content="http://yoursite.com/2021/08/17/dubbo-spi/index.html">
+<meta property="og:title" content="dubbo源码阅读-spi">
+<meta property="og:url" content="http://yoursite.com/2021/07/27/dubbo-spi/index.html">
 <meta property="og:site_name" content="llrrbaba">
-<meta property="og:description" content="12345678910111213141516171819202122232425262728293031323334353637&#x2F;&#x2F; com.alibaba.dubbo.common.extension.ExtensionLoader#getExtension&#x2F;&#x2F; 加载扩展点public T getExtension(String name) &amp;#123;    &#x2F;&#x2F; 如果名称不合法的话，抛出异">
+<meta property="og:description" content="spi">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-08-17T13:30:29.344Z">
-<meta property="article:modified_time" content="2021-08-17T13:58:41.216Z">
+<meta property="article:published_time" content="2021-07-27T07:15:04.000Z">
+<meta property="article:modified_time" content="2021-08-23T02:15:25.803Z">
 <meta property="article:author" content="llrrbaba">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="dubbo">
 <meta name="twitter:card" content="summary">
 
 
@@ -119,13 +121,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2021/08/17/dubbo-spi/"/>
+  <link rel="canonical" href="http://yoursite.com/2021/07/27/dubbo-spi/"/>
 
 
 
 
 
-  <title>dubbo-spi | llrrbaba</title>
+  <title>dubbo源码阅读-spi | llrrbaba</title>
   
 
 
@@ -262,7 +264,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/08/17/dubbo-spi/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/27/dubbo-spi/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="llrrbaba">
@@ -279,7 +281,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">dubbo-spi</h1>
+          <h1 class="post-title" itemprop="name headline">dubbo源码阅读-spi</h1>
         
 
         <div class="post-meta">
@@ -291,8 +293,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-08-17T21:30:29+08:00">
-                2021-08-17
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-27T15:15:04+08:00">
+                2021-07-27
               </time>
             
 
@@ -301,6 +303,28 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/dubbo/" itemprop="url" rel="index">
+                    <span itemprop="name">dubbo</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -329,7 +353,10 @@
       
 
       
-        <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.alibaba.dubbo.common.extension.ExtensionLoader#getExtension</span></span><br><span class="line"><span class="comment">// 加载扩展点</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> T <span class="title">getExtension</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 如果名称不合法的话，抛出异常</span></span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span> || name.length() == <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Extension name == null"</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果传进来的是“true”，就去获取默认的实现</span></span><br><span class="line">    <span class="comment">// TODO 需要看看默认实现是怎么维护的？</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="string">"true"</span>.equals(name)) &#123;</span><br><span class="line">        <span class="keyword">return</span> getDefaultExtension();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取缓存的 实例</span></span><br><span class="line">    Holder&lt;Object&gt; holder = cachedInstances.get(name);</span><br><span class="line">    <span class="keyword">if</span> (holder == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 走到这里，说明缓存里没有，初始化一个默认的实例扔到缓存里先</span></span><br><span class="line">        cachedInstances.putIfAbsent(name, <span class="keyword">new</span> Holder&lt;Object&gt;());</span><br><span class="line">        <span class="comment">// 然后拿到这个我们设置的实例 holder</span></span><br><span class="line">        holder = cachedInstances.get(name);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    Object instance = holder.get();</span><br><span class="line">    <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 这里判断下这个实例是否为null，如果是的话，加锁维护实例</span></span><br><span class="line">        <span class="keyword">synchronized</span> (holder) &#123;</span><br><span class="line">            instance = holder.get();</span><br><span class="line">            <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="comment">// 双重判断下，如果实力还是null，就去加载创建实例</span></span><br><span class="line">                instance = createExtension(name);</span><br><span class="line">                <span class="comment">// 并维护到holder里</span></span><br><span class="line">                holder.set(instance);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (T) instance;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        <p>spi</p>
+<a id="more"></a>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.alibaba.dubbo.common.extension.ExtensionLoader#getExtension</span></span><br><span class="line"><span class="comment">// 加载扩展点</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> T <span class="title">getExtension</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 如果名称不合法的话，抛出异常</span></span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span> || name.length() == <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Extension name == null"</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果传进来的是“true”，就去获取默认的实现</span></span><br><span class="line">    <span class="comment">// TODO 需要看看默认实现是怎么维护的？</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="string">"true"</span>.equals(name)) &#123;</span><br><span class="line">        <span class="keyword">return</span> getDefaultExtension();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取缓存的 实例</span></span><br><span class="line">    Holder&lt;Object&gt; holder = cachedInstances.get(name);</span><br><span class="line">    <span class="keyword">if</span> (holder == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 走到这里，说明缓存里没有，初始化一个默认的实例扔到缓存里先</span></span><br><span class="line">        cachedInstances.putIfAbsent(name, <span class="keyword">new</span> Holder&lt;Object&gt;());</span><br><span class="line">        <span class="comment">// 然后拿到这个我们设置的实例 holder</span></span><br><span class="line">        holder = cachedInstances.get(name);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    Object instance = holder.get();</span><br><span class="line">    <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 这里判断下这个实例是否为null，如果是的话，加锁维护实例</span></span><br><span class="line">        <span class="keyword">synchronized</span> (holder) &#123;</span><br><span class="line">            instance = holder.get();</span><br><span class="line">            <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="comment">// 双重判断下，如果实力还是null，就去加载创建实例</span></span><br><span class="line">                instance = createExtension(name);</span><br><span class="line">                <span class="comment">// 并维护到holder里</span></span><br><span class="line">                holder.set(instance);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (T) instance;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
@@ -350,6 +377,14 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          
+            <a href="/tags/dubbo/" rel="tag"># dubbo</a>
+          
+        </div>
+      
 
       
       
@@ -359,8 +394,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/08/03/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-BeanDefinitionReader-DefaultListableBeanFactory%E7%9B%B8%E5%85%B3%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="next" title="Spring源码阅读-BeanDefinitionReader-AnnotatedBeanDefinitionReader相关源码阅读">
-                <i class="fa fa-chevron-left"></i> Spring源码阅读-BeanDefinitionReader-AnnotatedBeanDefinitionReader相关源码阅读
+              <a href="/2021/07/27/Kafka%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-4-Partitioner%E6%8E%A5%E5%8F%A3%E7%AE%80%E6%9E%90/" rel="next" title="Kafka源码阅读-4-Partitioner接口简析">
+                <i class="fa fa-chevron-left"></i> Kafka源码阅读-4-Partitioner接口简析
               </a>
             
           </div>
@@ -369,8 +404,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/08/18/dubbo-adaptive/" rel="prev" title="dubbo-adaptive">
-                dubbo-adaptive <i class="fa fa-chevron-right"></i>
+              <a href="/2021/07/27/dubbo-service%E6%B3%A8%E5%86%8C/" rel="prev" title="dubbo源码阅读-service">
+                dubbo源码阅读-service <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -439,7 +474,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">32</span>
+                  <span class="site-state-item-count">31</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -450,7 +485,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">categories</span>
                 </a>
               </div>
@@ -461,7 +496,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
