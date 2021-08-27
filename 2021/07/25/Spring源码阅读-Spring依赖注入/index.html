@@ -79,15 +79,15 @@
 
 
 
-<meta name="description" content="Spring依赖查找">
+<meta name="description" content="Spring依赖注入">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Spring源码阅读-Spring依赖查找">
-<meta property="og:url" content="http://yoursite.com/2021/07/27/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-Spring%E4%BE%9D%E8%B5%96%E6%9F%A5%E6%89%BE/index.html">
+<meta property="og:title" content="Spring源码阅读-Spring依赖注入">
+<meta property="og:url" content="http://yoursite.com/2021/07/25/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-Spring%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/index.html">
 <meta property="og:site_name" content="llrrbaba">
-<meta property="og:description" content="Spring依赖查找">
+<meta property="og:description" content="Spring依赖注入">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-07-27T01:10:04.000Z">
-<meta property="article:modified_time" content="2021-07-28T03:20:47.591Z">
+<meta property="article:published_time" content="2021-07-24T22:10:04.000Z">
+<meta property="article:modified_time" content="2021-08-27T11:59:21.667Z">
 <meta property="article:author" content="llrrbaba">
 <meta property="article:tag" content="源码">
 <meta property="article:tag" content="Spring">
@@ -121,13 +121,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2021/07/27/Spring源码阅读-Spring依赖查找/"/>
+  <link rel="canonical" href="http://yoursite.com/2021/07/25/Spring源码阅读-Spring依赖注入/"/>
 
 
 
 
 
-  <title>Spring源码阅读-Spring依赖查找 | llrrbaba</title>
+  <title>Spring源码阅读-Spring依赖注入 | llrrbaba</title>
   
 
 
@@ -264,7 +264,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/27/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-Spring%E4%BE%9D%E8%B5%96%E6%9F%A5%E6%89%BE/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/07/25/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-Spring%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="llrrbaba">
@@ -281,7 +281,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Spring源码阅读-Spring依赖查找</h1>
+          <h1 class="post-title" itemprop="name headline">Spring源码阅读-Spring依赖注入</h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-27T09:10:04+08:00">
-                2021-07-27
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-07-25T06:10:04+08:00">
+                2021-07-25
               </time>
             
 
@@ -353,41 +353,14 @@
       
 
       
-        <p>Spring依赖查找</p>
+        <p>Spring依赖注入</p>
 <a id="more"></a>
 
-<table>
-<thead>
-<tr>
-<th>类型</th>
-<th>依赖处理</th>
-<th>实现便利性</th>
-<th>代码侵入性</th>
-<th>API依赖性</th>
-<th>可读性</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>依赖查找</td>
-<td>主动获取</td>
-<td>相对繁琐</td>
-<td>侵入业务逻辑</td>
-<td>依赖容器API</td>
-<td>良好</td>
-</tr>
-<tr>
-<td>依赖注入</td>
-<td>被动获取</td>
-<td>相对便利</td>
-<td>低侵入性</td>
-<td>不依赖容器API</td>
-<td>一般</td>
-</tr>
-</tbody></table>
-<p>依赖查找的方式</p>
+<p>依赖注入的方式</p>
 <ul>
-<li>name</li>
-<li>type</li>
+<li>构造器注入</li>
+<li>接口注入</li>
+<li>setter注入</li>
 </ul>
 
       
@@ -421,8 +394,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/07/27/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-Spring%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/" rel="next" title="Spring源码阅读-Spring依赖注入">
-                <i class="fa fa-chevron-left"></i> Spring源码阅读-Spring依赖注入
+              <a href="/2021/07/21/%E5%B8%B8%E7%94%A8JVM%E5%8F%82%E6%95%B0%E9%80%9F%E6%9F%A5/" rel="next" title="常用JVM参数速查">
+                <i class="fa fa-chevron-left"></i> 常用JVM参数速查
               </a>
             
           </div>
@@ -431,7 +404,7 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/07/27/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-BeanFactory%E7%9B%B8%E5%85%B3%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="prev" title="Spring源码阅读-BeanFactory相关源码阅读">
+              <a href="/2021/07/25/Spring%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB-BeanFactory%E7%9B%B8%E5%85%B3%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="prev" title="Spring源码阅读-BeanFactory相关源码阅读">
                 Spring源码阅读-BeanFactory相关源码阅读 <i class="fa fa-chevron-right"></i>
               </a>
             
